@@ -1,0 +1,42 @@
+# ESCRIBA-BACK Requirements
+# Backend API REST con FastAPI
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+
+# Azure Services
+openai==1.51.2
+azure-search-documents==11.4.0
+azure-ai-textanalytics==5.3.0
+azure-storage-blob==12.19.0
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+pandas==2.1.4
+numpy==1.26.2
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2
+
+# Security & Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Monitoring
+python-json-logger==2.0.7
+
+# Development
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
