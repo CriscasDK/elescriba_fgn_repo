@@ -1,0 +1,3155 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Red Semántica de Omar de Jesús Correa Isaza</title>
+    <script src="https://unpkg.com/@antv/g6@4.8.24/dist/g6.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+        
+        #graph-container {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-section h3 {
+            color: #2c3e50;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .control-section h3::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: #667eea;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 10px;
+            margin: 4px 0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background: #bdc3c7;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        .stat-value {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .legend {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .legend-item span {
+            font-size: 12px;
+        }
+        
+        .node-info {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 80px;
+        }
+        
+        .node-info h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .toolbar-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .toolbar-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="control-section">
+                <h3>⚙️ Controles</h3>
+                <button class="btn" onclick="fitView()">🔍 Ajustar Vista</button>
+                <button class="btn" onclick="resetZoom()">🎯 Reset Zoom</button>
+                <button class="btn btn-secondary" onclick="togglePhysics()">⚡ Toggle Física</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>👁️ Filtros Visuales</h3>
+                <div class="stats" id="node-filters">
+                    <!-- Se generará dinámicamente con JavaScript -->
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>🎮 Interactividad</h3>
+                <div class="stats">
+                    <div class="stat-item" style="border-bottom: none; padding: 4px 0;">
+                        <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                            <input type="checkbox" id="toggle-drag-node" checked style="margin-right: 8px;">
+                            <span class="stat-label" style="flex: 1;">🖱️ Arrastrar Nodos</span>
+                        </label>
+                    </div>
+                    <div class="stat-item" style="border-bottom: none; padding: 4px 0;">
+                        <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                            <input type="checkbox" id="toggle-drag-canvas" checked style="margin-right: 8px;">
+                            <span class="stat-label" style="flex: 1;">🌐 Arrastrar Canvas</span>
+                        </label>
+                    </div>
+                    <div class="stat-item" style="border-bottom: none; padding: 4px 0;">
+                        <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                            <input type="checkbox" id="toggle-zoom" checked style="margin-right: 8px;">
+                            <span class="stat-label" style="flex: 1;">🔍 Zoom con Rueda</span>
+                        </label>
+                    </div>
+                    <div class="stat-item" style="border-bottom: none; padding: 4px 0;">
+                        <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                            <input type="checkbox" id="toggle-select" checked style="margin-right: 8px;">
+                            <span class="stat-label" style="flex: 1;">✅ Seleccionar Nodos</span>
+                        </label>
+                    </div>
+                    <div class="stat-item" style="border-bottom: none; padding: 4px 0;">
+                        <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                            <input type="checkbox" id="toggle-box-select" style="margin-right: 8px;">
+                            <span class="stat-label" style="flex: 1;">📦 Selección Múltiple</span>
+                        </label>
+                    </div>
+                    <div class="stat-item" style="border-bottom: none; padding: 4px 0;">
+                        <label style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                            <input type="checkbox" id="toggle-labels" checked style="margin-right: 8px;">
+                            <span class="stat-label" style="flex: 1;">🏷️ Mostrar Etiquetas</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>📊 Estadísticas</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Nodos</span>
+                        <span class="stat-value">116</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Aristas</span>
+                        <span class="stat-value">0</span>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <span class="stat-label">entidad_estatal:</span>
+                        <span class="stat-value">13</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">entidad_ilegal:</span>
+                        <span class="stat-value">6</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">familiar:</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">persona:</span>
+                        <span class="stat-value">12</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">victima:</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">victimario:</span>
+                        <span class="stat-value">79</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>🎨 Leyenda</h3>
+                <div class="legend">
+                    
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #F39C12;"></div>
+                        <span>Familiar</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #E74C3C;"></div>
+                        <span>Victimario</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #8B0000;"></div>
+                        <span>Entidad Ilegal</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4A90E2;"></div>
+                        <span>Víctima</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #888888;"></div>
+                        <span>persona</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #888888;"></div>
+                        <span>entidad_estatal</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="node-info" id="node-info">
+                <p style="color: #7f8c8d; font-style: italic; font-size: 12px;">Haz click en un nodo para ver detalles</p>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>🔍 Red Semántica de Omar de Jesús Correa Isaza</h1>
+                <p>Sistema Judicial • 116 nodos, 127 relaciones</p>
+            </div>
+            
+            <div id="graph-container">
+                <div class="toolbar">
+                    <button class="toolbar-btn" onclick="graph.zoomTo(graph.getZoom() * 1.2)" title="Zoom In">+</button>
+                    <button class="toolbar-btn" onclick="graph.zoomTo(graph.getZoom() * 0.8)" title="Zoom Out">-</button>
+                    <button class="toolbar-btn" onclick="downloadGraph()" title="Descargar">💾</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+  "nodes": [
+    {
+      "id": "pg_807368",
+      "label": "Omar de Jesús Correa Isaza",
+      "type": "victima",
+      "size": 40,
+      "style": {
+        "fill": "#4A90E2",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_93975",
+      "label": "Desaparición Forzada",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_840526",
+      "label": "Unión Patriótica",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_746110",
+      "label": "Partido Comunista Colombiano",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_917112",
+      "label": "Gabriel Aurelio Correa Zapata",
+      "type": "familiar",
+      "size": 25,
+      "style": {
+        "fill": "#F39C12",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_496665",
+      "label": "Policía Nacional",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_473861",
+      "label": "Grupo De Hombres",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_474328",
+      "label": "Cruz Amparo Zapata Patiño",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_150559",
+      "label": "Grupo Armado",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_330430",
+      "label": "Asfaddes",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_425207",
+      "label": "Desaparición",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_214168",
+      "label": "Comisión de Búsqueda de Personas Desaparecidas",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_722051",
+      "label": "Omar De Jesús Correa Isaza",
+      "type": "familiar",
+      "size": 25,
+      "style": {
+        "fill": "#F39C12",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_596146",
+      "label": "Comité Central del Partido Comunista Colombiano",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_178299",
+      "label": "Alcaldía de Medellín",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_881672",
+      "label": "Sindicado N.N.",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_834345",
+      "label": "Homicidio",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_324141",
+      "label": "N.N.",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_540430",
+      "label": "Bloque Cacique Nutibara",
+      "type": "entidad_ilegal",
+      "size": 40,
+      "style": {
+        "fill": "#8B0000",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_763722",
+      "label": "Fernando Ibarra Ruiz",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_991383",
+      "label": "FERNANDO MURILLO BEJARANO alias DON BERNA",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_407778",
+      "label": "Néstor Eduardo Cardona",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_179006",
+      "label": "Estación de Policía La Candelaria",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_48708",
+      "label": "Estación de Policía Laureles",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_105934",
+      "label": "Fernando Murillo Bejarano",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_261284",
+      "label": "Gabriel Melquiades Correa Barrientos",
+      "type": "familiar",
+      "size": 25,
+      "style": {
+        "fill": "#F39C12",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_886256",
+      "label": "GAULA de Bogotá",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_287236",
+      "label": "Juan David Gómez Sierra",
+      "type": "victima",
+      "size": 40,
+      "style": {
+        "fill": "#4A90E2",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_976109",
+      "label": "Grupo de diez personas",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_50786",
+      "label": "Grupo De Diez Personas",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_906225",
+      "label": "Jhon David Molina V.",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_581701",
+      "label": "9 Hombres",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_440501",
+      "label": "Alfonso Lozano",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_900882",
+      "label": "Andas",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_166940",
+      "label": "Asfades",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_768290",
+      "label": "Asociación de Familiares de Detenidos Desaparecidos – Colombia (ASFADDES",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_56202",
+      "label": "Asociación de Familiares de Detenidos y Desaparecidos",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_21740",
+      "label": "Bloque Metro",
+      "type": "entidad_ilegal",
+      "size": 40,
+      "style": {
+        "fill": "#8B0000",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_684261",
+      "label": "Calabozos de la SIJIN",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_583514",
+      "label": "Calabozos del DAS",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_757567",
+      "label": "Carlos Mauricio Mora Moreno",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_666762",
+      "label": "Claudia Milena Suárez Martínez",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_583245",
+      "label": "Comando de Policía Nacional",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_966342",
+      "label": "Comité Central del PCC",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_470962",
+      "label": "Cruz Amparo Zapata P.",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_94412",
+      "label": "Cuerpo Técnico de Investigación",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_944731",
+      "label": "Cuerpo Técnico de Investigación (C.T.I.",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_291921",
+      "label": "Cuerpo Técnico de Investigación (CTI",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_643672",
+      "label": "Cuerpo Técnico del CTI",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_496280",
+      "label": "Das",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_819263",
+      "label": "Departamento Administrativo de Seguridad (DAS",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_844158",
+      "label": "Diana Margarita Jaimes Plata",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_429925",
+      "label": "Diez Sujetos Armados",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_704707",
+      "label": "Ejército Nacional",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_254288",
+      "label": "Eliodoro Durango",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_988477",
+      "label": "Estación de Policía Carabineros de Medellín",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_589633",
+      "label": "Estación de Policía del Barrio Laureles",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_240462",
+      "label": "Inspección Quinta de Policía Urbana",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_686287",
+      "label": "Jaime Augusto Rico Lezama",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_355965",
+      "label": "Juan Klett",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_45028",
+      "label": "Julian Fernandez",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_95852",
+      "label": "Julio César Uribe",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_641279",
+      "label": "La Sijín",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_932104",
+      "label": "Lucía Noemí Ceballos Ochoa",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_304152",
+      "label": "Luis González León",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_141786",
+      "label": "Miembros De Organismos De Seguridad",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_557492",
+      "label": "Miembros De Seguridad Del Estado",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_662658",
+      "label": "Miembros no identificados de los grupos responsables de la desaparición",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_795888",
+      "label": "Néstor Eduardo Cardona (alias \"Alpinito",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_72284",
+      "label": "Néstor Eduardo Cardona Cardona",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_387935",
+      "label": "N.N. Grupo Armado",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_167698",
+      "label": "Nueve Hombres Armados",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_591612",
+      "label": "Oficina de Derechos Humanos de Bogotá",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_611354",
+      "label": "Pablo Córdoba",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_849902",
+      "label": "Personería",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_260410",
+      "label": "Personería de Medellín",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_359741",
+      "label": "Policía Antioquia",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_625698",
+      "label": "Policía Metropolitana del Valle de Aburrá",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_650411",
+      "label": "Policía Nacional, Dirección Antisecuestro y Extorsión, GAULA Regional Medellín",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_87901",
+      "label": "Reclusión Arbitraria E Ilegal",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_608897",
+      "label": "Rosa María Serna",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_140314",
+      "label": "Sergio Gómez Hernández",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_696053",
+      "label": "Sindicato Único de Trabajadores del Cemento y la Construcción (SUTIMAC",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_335256",
+      "label": "Sujetos desconocidos",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_130724",
+      "label": "Teniente Javier Humberto Gaitán González",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_819931",
+      "label": "Claudia Patricia Callejo A.",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_327026",
+      "label": "Dos Hombres No Identificados",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_243606",
+      "label": "Te. Javier Humberto Gaitán González",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_851058",
+      "label": "Grupo Armado NN",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_486172",
+      "label": "Grupo Armado/Paramilitares/Guerrilla",
+      "type": "entidad_ilegal",
+      "size": 40,
+      "style": {
+        "fill": "#8B0000",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_717383",
+      "label": "Grupo de hombres",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_537077",
+      "label": "Grupo De Hombres Armados",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_102137",
+      "label": "Grupos Armados",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_599286",
+      "label": "Grupos de autodefensas y guerrilla operantes en Antioquia",
+      "type": "entidad_ilegal",
+      "size": 40,
+      "style": {
+        "fill": "#8B0000",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_890040",
+      "label": "Grupos GAULA de Bogotá",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_724263",
+      "label": "Grupos Paramilitares",
+      "type": "entidad_ilegal",
+      "size": 40,
+      "style": {
+        "fill": "#8B0000",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_576562",
+      "label": "Guillermo Callejas",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_937814",
+      "label": "Hombres No Identificados",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_799339",
+      "label": "Hugo Albeiro Quintero Restrepo",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_851984",
+      "label": "Inspección Nueve \"B\" de Policía Urbana",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_866493",
+      "label": "GAULA Regional Medellín",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_369916",
+      "label": "Policía Nacional - Dirección Antisecuestro y Extorsión GAULA Regional Medellín",
+      "type": "entidad_estatal",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_649466",
+      "label": "Grupo Que Intercepta Y Agrede",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_966195",
+      "label": "Dirección Especializada Contra las Violaciones a los Derechos Humanos",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_777875",
+      "label": "Teniente Coronel José Antonio Poveda Montes",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_581986",
+      "label": "Fredy Osorio Patiño",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_940431",
+      "label": "expediente relacionado con el caso de Omar de Jesús Correa Isaza",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_181290",
+      "label": "Cuarta Brigada",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_276043",
+      "label": "Autodefensas",
+      "type": "entidad_ilegal",
+      "size": 40,
+      "style": {
+        "fill": "#8B0000",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_106089",
+      "label": "John David Molina V.",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_411715",
+      "label": "Gaula",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_531585",
+      "label": "Javier Humberto Gaitán González",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_174551",
+      "label": "Diego Fernando Agudelo Rodríguez",
+      "type": "victima",
+      "size": 40,
+      "style": {
+        "fill": "#4A90E2",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_400846",
+      "label": "Rosa Edith Sierra",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_126144",
+      "label": "Cementos Nare",
+      "type": "victimario",
+      "size": 35,
+      "style": {
+        "fill": "#E74C3C",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    },
+    {
+      "id": "pg_774276",
+      "label": "Sitimac – Nare",
+      "type": "persona",
+      "size": 25,
+      "style": {
+        "fill": "#888888",
+        "lineWidth": 3,
+        "stroke": "#fff"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "pg_807368",
+      "target": "pg_93975",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 40
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_807368",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 7
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_496665",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 6
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_473861",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 6
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_474328",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 5
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_150559",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 4
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_330430",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 4
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_425207",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 4
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_214168",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 3
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_178299",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_881672",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_834345",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_324141",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_540430",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_763722",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_991383",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_407778",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_179006",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_48708",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_105934",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_917112",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_261284",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_886256",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_287236",
+      "target": "pg_807368",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_330430",
+      "target": "pg_807368",
+      "label": "miembro_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_474328",
+      "target": "pg_807368",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_581701",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_440501",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_900882",
+      "label": "miembro_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_166940",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_768290",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_56202",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_21740",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_684261",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_583514",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_757567",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_666762",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_583245",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_966342",
+      "label": "miembro_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_470962",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_94412",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_944731",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_291921",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_643672",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_496280",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_819263",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_844158",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_429925",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_704707",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_254288",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_988477",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_589633",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_240462",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_686287",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_906225",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_355965",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_45028",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_95852",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_641279",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_932104",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_304152",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_141786",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_557492",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_662658",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_795888",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_72284",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_387935",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_167698",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_591612",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_611354",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_746110",
+      "label": "miembro_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_849902",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_260410",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_359741",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_625698",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_650411",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_87901",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_608897",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_140314",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_696053",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_335256",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_130724",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_840526",
+      "label": "miembro_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_819931",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_596146",
+      "label": "miembro_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_93975",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_327026",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_976109",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_243606",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_851058",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_486172",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_50786",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_717383",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_537077",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_102137",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_599286",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_890040",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_724263",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_576562",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_937814",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_799339",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_851984",
+      "label": "victima_de (100%)",
+      "metadata": {
+        "confianza": 1,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_886256",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_473861",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_866493",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_369916",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_840526",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_917112",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_807368",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_649466",
+      "label": "victima_de (90%)",
+      "metadata": {
+        "confianza": 0.9,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_473861",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 9
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_886256",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 4
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_576562",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 2
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_966195",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_777875",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_581986",
+      "target": "pg_940431",
+      "label": "miembro_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_291921",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_181290",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_276043",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_106089",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_625698",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_411715",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_722051",
+      "target": "pg_531585",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_174551",
+      "target": "pg_807368",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_126144",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_400846",
+      "target": "pg_807368",
+      "label": "victima_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    },
+    {
+      "source": "pg_807368",
+      "target": "pg_774276",
+      "label": "miembro_de (70%)",
+      "metadata": {
+        "confianza": 0.7,
+        "num_documentos": 1
+      }
+    }
+  ]
+};
+
+        const container = document.getElementById('graph-container');
+        const width = container.offsetWidth;
+        const height = container.offsetHeight;
+
+        const graph = new G6.Graph({
+            container: 'graph-container',
+            width,
+            height,
+            layout: {
+                type: 'force',
+                preventOverlap: true,
+                nodeSpacing: 100,
+                linkDistance: 150,
+                nodeStrength: -300,
+                edgeStrength: 0.5,
+                collideStrength: 0.8,
+                alpha: 0.8,
+                alphaDecay: 0.028,
+                alphaMin: 0.01
+            },
+            defaultNode: {
+                size: 30,
+                style: {
+                    lineWidth: 3,
+                    stroke: '#fff',
+                    shadowColor: 'rgba(0,0,0,0.3)',
+                    shadowBlur: 10
+                },
+                labelCfg: {
+                    style: {
+                        fill: '#fff',
+                        fontSize: 11,
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        textBaseline: 'middle',
+                        shadowColor: 'rgba(0,0,0,0.5)',
+                        shadowBlur: 4
+                    }
+                }
+            },
+            defaultEdge: {
+                style: {
+                    stroke: '#e2e2e2',
+                    lineWidth: 2,
+                    endArrow: {
+                        path: G6.Arrow.triangle(8, 10, 0),
+                        fill: '#e2e2e2'
+                    }
+                },
+                labelCfg: {
+                    autoRotate: true,
+                    style: {
+                        fill: '#666',
+                        fontSize: 9,
+                        background: {
+                            fill: '#fff',
+                            padding: [2, 4, 2, 4],
+                            radius: 4
+                        }
+                    }
+                }
+            },
+            modes: {
+                default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
+            },
+            plugins: [],  // Plugins disponibles para selección múltiple
+            nodeStateStyles: {
+                hover: {
+                    lineWidth: 5,
+                    stroke: '#FFD700',
+                    shadowColor: 'rgba(255, 215, 0, 0.6)',
+                    shadowBlur: 20
+                },
+                selected: {
+                    lineWidth: 5,
+                    stroke: '#FFD700',
+                    shadowColor: 'rgba(255, 215, 0, 0.8)',
+                    shadowBlur: 25
+                }
+            },
+            edgeStateStyles: {
+                hover: {
+                    lineWidth: 4,
+                    stroke: '#FFD700'
+                }
+            }
+        });
+
+        graph.data(data);
+        graph.render();
+
+        graph.on('node:mouseenter', (e) => {
+            graph.setItemState(e.item, 'hover', true);
+        });
+
+        graph.on('node:mouseleave', (e) => {
+            graph.setItemState(e.item, 'hover', false);
+        });
+
+        graph.on('node:click', (e) => {
+            const node = e.item;
+            const model = node.getModel();
+            
+            const infoPanel = document.getElementById('node-info');
+            let metadataHtml = '';
+            if (model.metadata) {
+                metadataHtml = '<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;">';
+                for (const [key, value] of Object.entries(model.metadata)) {
+                    metadataHtml += `<div class="stat-item"><span class="stat-label">${key}:</span><span class="stat-value">${value}</span></div>`;
+                }
+                metadataHtml += '</div>';
+            }
+            
+            infoPanel.innerHTML = `
+                <h4>${model.label}</h4>
+                <div class="stat-item">
+                    <span class="stat-label">Tipo:</span>
+                    <span class="stat-value">${model.type}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">ID:</span>
+                    <span class="stat-value">${model.id}</span>
+                </div>
+                ${metadataHtml}
+            `;
+            
+            graph.getNodes().forEach(node => {
+                graph.clearItemStates(node);
+            });
+            graph.setItemState(node, 'selected', true);
+            
+            const edges = node.getEdges();
+            edges.forEach(edge => {
+                graph.setItemState(edge, 'hover', true);
+            });
+        });
+
+        function fitView() {
+            graph.fitView(20);
+        }
+
+        function resetZoom() {
+            graph.zoomTo(1);
+            graph.fitCenter();
+        }
+
+        let physicsEnabled = true;
+        function togglePhysics() {
+            if (physicsEnabled) {
+                graph.updateLayout({
+                    type: 'circular'
+                });
+            } else {
+                graph.updateLayout({
+                    type: 'force',
+                    preventOverlap: true,
+                    nodeSpacing: 100
+                });
+            }
+            physicsEnabled = !physicsEnabled;
+        }
+
+        function downloadGraph() {
+            graph.downloadFullImage('grafo-judicial', 'image/png', {
+                backgroundColor: '#fff',
+                padding: 30
+            });
+        }
+
+        // ========================================
+        // FILTROS VISUALES POR TIPO DE NODO
+        // ========================================
+        
+        // Estado de visibilidad por tipo
+        const nodeTypeVisibility = {};
+        
+        // Mapeo de nombres legibles
+        const nodeTypeLabels = {
+            'victima': '🔵 Víctima',
+            'victimario': '🔴 Victimario',
+            'familiar': '🟠 Familiar',
+            'entidad_ilegal': '⚫ Entidad Ilegal',
+            'Persona': '🔷 Persona',
+            'Organizacion': '🔶 Organización',
+            'Documento': '📄 Documento',
+            'Lugar': '📍 Lugar'
+        };
+        
+        // Extraer tipos únicos de los nodos
+        const nodeTypes = [...new Set(data.nodes.map(n => n.type))];
+        
+        // Inicializar estado (todos visibles por defecto)
+        nodeTypes.forEach(type => {
+            nodeTypeVisibility[type] = true;
+        });
+        
+        // Generar checkboxes de filtro dinámicamente
+        function initializeNodeFilters() {
+            const filtersContainer = document.getElementById('node-filters');
+            
+            nodeTypes.forEach(type => {
+                const count = data.nodes.filter(n => n.type === type).length;
+                const label = nodeTypeLabels[type] || type;
+                const color = data.nodes.find(n => n.type === type)?.style?.fill || '#888';
+                
+                const filterItem = document.createElement('div');
+                filterItem.className = 'stat-item';
+                filterItem.style.cssText = 'border-bottom: none; padding: 6px 0; cursor: pointer; transition: all 0.2s;';
+                filterItem.innerHTML = `
+                    <label style="cursor: pointer; display: flex; align-items: center; width: 100%; gap: 8px;">
+                        <input type="checkbox" class="node-filter" data-type="${type}" checked style="margin: 0;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></div>
+                        <span style="flex: 1; font-size: 13px;">${label}</span>
+                        <span style="color: #7f8c8d; font-size: 11px;">${count}</span>
+                    </label>
+                `;
+                
+                // Efecto hover
+                filterItem.addEventListener('mouseenter', () => {
+                    filterItem.style.background = 'rgba(52, 152, 219, 0.1)';
+                });
+                filterItem.addEventListener('mouseleave', () => {
+                    filterItem.style.background = 'transparent';
+                });
+                
+                filtersContainer.appendChild(filterItem);
+            });
+            
+            // Añadir listeners
+            document.querySelectorAll('.node-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const type = this.dataset.type;
+                    nodeTypeVisibility[type] = this.checked;
+                    applyNodeFilters();
+                });
+            });
+        }
+        
+        // Aplicar filtros de visibilidad
+        function applyNodeFilters() {
+            const nodes = graph.getNodes();
+            const edges = graph.getEdges();
+            
+            let visibleCount = 0;
+            let hiddenCount = 0;
+            
+            nodes.forEach(node => {
+                const model = node.getModel();
+                const isVisible = nodeTypeVisibility[model.type];
+                
+                if (isVisible) {
+                    graph.showItem(node);
+                    visibleCount++;
+                } else {
+                    graph.hideItem(node);
+                    hiddenCount++;
+                }
+            });
+            
+            // Ocultar aristas conectadas a nodos invisibles
+            edges.forEach(edge => {
+                const model = edge.getModel();
+                const sourceNode = graph.findById(model.source);
+                const targetNode = graph.findById(model.target);
+                
+                const sourceVisible = sourceNode && !sourceNode.get('visible') === false;
+                const targetVisible = targetNode && !targetNode.get('visible') === false;
+                
+                if (sourceVisible && targetVisible) {
+                    graph.showItem(edge);
+                } else {
+                    graph.hideItem(edge);
+                }
+            });
+            
+            console.log(`👁️ Filtros aplicados: ${visibleCount} visibles, ${hiddenCount} ocultos`);
+        }
+        
+        // ========================================
+        // CONTROLES DE INTERACTIVIDAD DINÁMICOS
+        // ========================================
+        
+        // Función para actualizar modos del grafo
+        function updateGraphModes() {
+            const modes = [];
+            
+            if (document.getElementById('toggle-drag-node').checked) {
+                modes.push('drag-node');
+            }
+            if (document.getElementById('toggle-drag-canvas').checked) {
+                modes.push('drag-canvas');
+            }
+            if (document.getElementById('toggle-zoom').checked) {
+                modes.push('zoom-canvas');
+            }
+            if (document.getElementById('toggle-select').checked) {
+                modes.push('click-select');
+            }
+            if (document.getElementById('toggle-box-select').checked) {
+                modes.push('brush-select');
+            }
+            
+            // Actualizar modos del grafo
+            graph.setMode('default');
+            graph.get('modeController').setMode('default');
+            
+            console.log('🎮 Modos actualizados:', modes);
+        }
+        
+        // Toggle para mostrar/ocultar etiquetas
+        document.getElementById('toggle-labels').addEventListener('change', function(e) {
+            const showLabels = e.target.checked;
+            
+            graph.getNodes().forEach(node => {
+                graph.updateItem(node, {
+                    labelCfg: {
+                        style: {
+                            opacity: showLabels ? 1 : 0
+                        }
+                    }
+                });
+            });
+            
+            graph.getEdges().forEach(edge => {
+                graph.updateItem(edge, {
+                    labelCfg: {
+                        style: {
+                            opacity: showLabels ? 0.8 : 0
+                        }
+                    }
+                });
+            });
+            
+            console.log(showLabels ? '🏷️ Etiquetas mostradas' : '🏷️ Etiquetas ocultas');
+        });
+        
+        // Event listeners para checkboxes de interactividad
+        ['toggle-drag-node', 'toggle-drag-canvas', 'toggle-zoom', 'toggle-select', 'toggle-box-select'].forEach(id => {
+            document.getElementById(id).addEventListener('change', function() {
+                updateGraphModes();
+            });
+        });
+        
+        // Inicializar modos
+        updateGraphModes();
+        
+        // Inicializar filtros visuales
+        initializeNodeFilters();
+
+        // ========================================
+        // RESPONSIVE Y AUTO-FIT
+        // ========================================
+
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('graph-container');
+            graph.changeSize(container.offsetWidth, container.offsetHeight);
+            graph.fitView(20);
+        });
+
+        setTimeout(() => {
+            graph.fitView(20);
+        }, 1000);
+    </script>
+</body>
+</html>

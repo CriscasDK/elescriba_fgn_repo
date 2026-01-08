@@ -1,0 +1,24 @@
+# ESCRIBA-FRONT Requirements
+# Frontend Dash UI
+
+# Core Framework
+dash==2.14.2
+dash-bootstrap-components==1.5.0
+plotly==5.18.0
+
+# HTTP Client
+requests==2.31.0
+httpx==0.25.2
+
+# Utilities
+python-dotenv==1.0.0
+pandas==2.1.4
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+selenium==4.15.2
+
+# Development
+black==23.11.0
+flake8==6.1.0

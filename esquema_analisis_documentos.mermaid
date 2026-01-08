@@ -1,0 +1,128 @@
+```mermaid
+graph TD
+    A[ANÁLISIS DEL DOCUMENTO] --> B[1. TIPO DE DOCUMENTO]
+    A --> C[2. ENTIDADES Y PERSONAS]
+    A --> D[3. DATOS CLAVE]
+    A --> E[4. ESTRUCTURA DEL DOCUMENTO]
+    A --> F[5. RESUMEN DEL CONTENIDO]
+    A --> G[Observaciones finales]
+
+    %% TIPO DE DOCUMENTO
+    B --> B1[Tipo específico]
+    B --> B2[Características]
+
+    %% ENTIDADES Y PERSONAS
+    C --> C1[A. PERSONAS]
+    C --> C2[B. ORGANIZACIONES/INSTITUCIONES]
+    C --> C3[C. LUGARES/DIRECCIONES]
+    C --> C4[D. CARGOS/ROLES MENCIONADOS]
+
+    %% A. PERSONAS - Subdivisiones
+    C1 --> C1A[Lista general de personas mencionadas]
+    C1 --> C1B[Clasificación cuando es posible]
+
+    C1B --> C1B1[Víctimas]
+    C1B --> C1B2[Actores políticos]
+    C1B --> C1B3[Defensa]
+    C1B --> C1B4[Responsables]
+    C1B --> C1B5[Familiares]
+    C1B --> C1B6[Testigos]
+
+    %% B. ORGANIZACIONES - Subdivisiones
+    C2 --> C2A[Lista general]
+    C2 --> C2B[Clasificación]
+
+    C2B --> C2B1[Fuerzas legítimas]
+    C2B --> C2B2[Fuerzas ilegales]
+    C2B --> C2B3[Actores políticos]
+    C2B --> C2B4[Organizaciones civiles]
+
+    %% C. LUGARES - Contenido directo
+    C3 --> C3A[Lista numerada de lugares mencionados]
+    C3 --> C3B[Direcciones específicas]
+    C3 --> C3C[Departamentos/Municipios]
+
+    %% D. CARGOS - Contenido directo
+    C4 --> C4A[Lista de cargos identificados]
+    C4 --> C4B[Roles institucionales]
+    C4 --> C4C[Funciones específicas]
+
+    %% DATOS CLAVE
+    D --> D1[Fechas]
+    D --> D2[Números de identificación/referencia]
+    D --> D3[Datos de contacto]
+
+    D1 --> D1A[Fechas de hechos]
+    D1A --> D1A1[Con descripción del evento]
+    D1A --> D1A2[Formato: DD de MM de AAAA]
+
+    D2 --> D2A[Radicados]
+    D2 --> D2B[NUCs]
+    D2 --> D2C[Códigos de identificación]
+    D2 --> D2D[Números de caso]
+
+    D3 --> D3A[Teléfonos]
+    D3 --> D3B[Emails]
+    D3 --> D3C[Direcciones institucionales]
+
+    %% ESTRUCTURA DEL DOCUMENTO
+    E --> E1[Secciones principales]
+    E --> E2[Elementos formales]
+    E --> E3[Elementos visuales relevantes]
+
+    E1 --> E1A[Encabezado]
+    E1 --> E1B[Cuerpo del documento]
+    E1 --> E1C[Firma/Cierre]
+    E1 --> E1D[Anexos si aplica]
+
+    E2 --> E2A[Membrete oficial]
+    E2 --> E2B[Sellos institucionales]
+    E2 --> E2C[Firmas]
+    E2 --> E2D[Datos de contacto]
+
+    E3 --> E3A[Logotipos]
+    E3 --> E3B[Formato oficial]
+    E3 --> E3C[Elementos gráficos]
+
+    %% RESUMEN DEL CONTENIDO
+    F --> F1[Propósito principal del documento]
+    F --> F2[Contexto y asunto central]
+    F --> F3[Conclusiones o puntos clave]
+    F --> F4[Acciones solicitadas o compromisos mencionados]
+
+    F1 --> F1A[Objetivo declarado]
+    F1 --> F1B[Finalidad legal]
+
+    F2 --> F2A[Marco legal]
+    F2 --> F2B[Antecedentes del caso]
+    F2 --> F2C[Situación jurídica]
+
+    F3 --> F3A[Puntos destacados]
+    F3 --> F3B[Decisiones tomadas]
+    F3 --> F3C[Hallazgos importantes]
+
+    F4 --> F4A[Tareas asignadas]
+    F4 --> F4B[Plazos establecidos]
+    F4 --> F4C[Responsables designados]
+    F4 --> F4D[Seguimientos requeridos]
+
+    %% OBSERVACIONES FINALES
+    G --> G1[Observaciones sobre estructura]
+    G --> G2[Observaciones sobre contenido]
+    G --> G3[Limitaciones identificadas]
+    G --> G4[Elementos destacables]
+
+    %% Estilos
+    classDef mainNode fill:#2E86AB,stroke:#A23B72,stroke-width:3px,color:#fff
+    classDef sectionNode fill:#F18F01,stroke:#C73E1D,stroke-width:2px,color:#fff
+    classDef subNode fill:#FFE066,stroke:#F18F01,stroke-width:1px,color:#000
+    classDef detailNode fill:#F4F4F8,stroke:#A8DADC,stroke-width:1px,color:#000
+
+    class A mainNode
+    class B,C,D,E,F,G sectionNode
+    class B1,B2,C1,C2,C3,C4,D1,D2,D3,E1,E2,E3,F1,F2,F3,F4,G1,G2,G3,G4 subNode
+    class C1A,C1B,C2A,C2B,C1B1,C1B2,C1B3,C1B4,C1B5,C1B6,C2B1,C2B2,C2B3,C2B4 detailNode
+    class C3A,C3B,C3C,C4A,C4B,C4C,D1A,D2A,D2B,D2C,D2D,D3A,D3B,D3C detailNode
+    class E1A,E1B,E1C,E1D,E2A,E2B,E2C,E2D,E3A,E3B,E3C detailNode
+    class F1A,F1B,F2A,F2B,F2C,F3A,F3B,F3C,F4A,F4B,F4C,F4D,D1A1,D1A2 detailNode
+```

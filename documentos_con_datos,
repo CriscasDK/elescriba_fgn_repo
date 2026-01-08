@@ -1,0 +1,52 @@
+                                            Table "public.documentos"
+       Column       |            Type             | Collation | Nullable |                Default                 
+--------------------+-----------------------------+-----------+----------+----------------------------------------
+ id                 | integer                     |           | not null | nextval('documentos_id_seq'::regclass)
+ archivo            | character varying(255)      |           | not null | 
+ ruta               | text                        |           |          | 
+ nuc                | character varying(50)       |           |          | 
+ procesado          | timestamp without time zone |           |          | CURRENT_TIMESTAMP
+ estado             | character varying(50)       |           |          | 
+ cuaderno           | character varying(50)       |           |          | 
+ codigo             | character varying(20)       |           |          | 
+ despacho           | character varying(20)       |           |          | 
+ entidad_productora | text                        |           |          | 
+ serie              | character varying(20)       |           |          | 
+ subserie           | character varying(20)       |           |          | 
+ folio_inicial      | integer                     |           |          | 
+ folio_final        | integer                     |           |          | 
+ paginas            | integer                     |           |          | 
+ tamaño_mb          | numeric(10,2)               |           |          | 
+ costo_estimado     | numeric(10,2)               |           |          | 
+ hash_sha256        | character varying(64)       |           |          | 
+ texto_extraido     | text                        |           |          | 
+ analisis           | text                        |           |          | 
+ created_at         | timestamp without time zone |           |          | CURRENT_TIMESTAMP
+ updated_at         | timestamp without time zone |           |          | CURRENT_TIMESTAMP
+Indexes:
+    "documentos_pkey" PRIMARY KEY, btree (id)
+    "documentos_archivo_key" UNIQUE CONSTRAINT, btree (archivo)
+    "documentos_hash_sha256_key" UNIQUE CONSTRAINT, btree (hash_sha256)
+    "idx_documentos_archivo" btree (archivo)
+    "idx_documentos_nuc" btree (nuc)
+Referenced by:
+    TABLE "analisis_cantidades_valores" CONSTRAINT "analisis_cantidades_valores_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_cargos_roles" CONSTRAINT "analisis_cargos_roles_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_datos_contacto" CONSTRAINT "analisis_datos_contacto_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_delitos" CONSTRAINT "analisis_delitos_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_estructura_documento" CONSTRAINT "analisis_estructura_documento_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_fechas" CONSTRAINT "analisis_fechas_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_lugares" CONSTRAINT "analisis_lugares_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_numeros_identificacion" CONSTRAINT "analisis_numeros_identificacion_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_observaciones" CONSTRAINT "analisis_observaciones_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_organizaciones_clasificacion" CONSTRAINT "analisis_organizaciones_clasificacion_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_organizaciones_general" CONSTRAINT "analisis_organizaciones_general_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_personas_clasificacion" CONSTRAINT "analisis_personas_clasificacion_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_personas_general" CONSTRAINT "analisis_personas_general_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_resumen_contenido" CONSTRAINT "analisis_resumen_contenido_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "analisis_tipo_documento" CONSTRAINT "analisis_tipo_documento_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "estadisticas" CONSTRAINT "estadisticas_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "metadatos" CONSTRAINT "metadatos_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "organizaciones" CONSTRAINT "organizaciones_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+    TABLE "personas" CONSTRAINT "personas_documento_id_fkey" FOREIGN KEY (documento_id) REFERENCES documentos(id) ON DELETE CASCADE
+

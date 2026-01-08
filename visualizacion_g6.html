@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Visualización G6 - Caso Oswaldo Olivo</title>
+    <script src="https://unpkg.com/@antv/g6@4.8.24/dist/g6.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        #graph-container {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-section {
+            margin-bottom: 25px;
+        }
+        
+        .control-section h3 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .control-section h3::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #667eea;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .btn-secondary:hover {
+            background: #bdc3c7;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+        
+        .stat-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .legend {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .node-info {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 100px;
+        }
+        
+        .node-info h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .minimap {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .toolbar-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .toolbar-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="control-section">
+                <h3>⚙️ Controles</h3>
+                <button class="btn" onclick="fitView()">🔍 Ajustar Vista</button>
+                <button class="btn" onclick="resetZoom()">🎯 Reset Zoom</button>
+                <button class="btn btn-secondary" onclick="togglePhysics()">⚡ Toggle Física</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>📊 Estadísticas</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Nodos</span>
+                        <span class="stat-value" id="total-nodes">10</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Aristas</span>
+                        <span class="stat-value" id="total-edges">13</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Víctimas</span>
+                        <span class="stat-value" id="stat-victimas">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Victimarios</span>
+                        <span class="stat-value" id="stat-victimarios">2</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Familiares</span>
+                        <span class="stat-value" id="stat-familiares">2</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>🎨 Leyenda</h3>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4A90E2;"></div>
+                        <span>Víctima</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #E74C3C;"></div>
+                        <span>Victimario</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #F39C12;"></div>
+                        <span>Familiar</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #8B0000;"></div>
+                        <span>Entidad Ilegal</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FF6B6B;"></div>
+                        <span>Documento</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #96CEB4;"></div>
+                        <span>Lugar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="node-info" id="node-info">
+                <p style="color: #7f8c8d; font-style: italic;">Haz click en un nodo para ver detalles</p>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>🔍 Visualización G6 - Sistema Judicial</h1>
+                <p>Caso: Oswaldo Olivo • Grafos de Relaciones con AntV G6</p>
+            </div>
+            
+            <div id="graph-container">
+                <div class="toolbar">
+                    <button class="toolbar-btn" onclick="graph.zoomTo(graph.getZoom() * 1.2)" title="Zoom In">+</button>
+                    <button class="toolbar-btn" onclick="graph.zoomTo(graph.getZoom() * 0.8)" title="Zoom Out">-</button>
+                    <button class="toolbar-btn" onclick="downloadGraph()" title="Descargar">💾</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos del caso Oswaldo Olivo
+        const data = {
+            nodes: [
+                { id: 'victima_1', label: 'Oswaldo Olivo', type: 'victima', size: 40 },
+                { id: 'victimario_1', label: 'Grupo Armado X', type: 'victimario', size: 35 },
+                { id: 'victimario_2', label: 'Comandante Y', type: 'victimario', size: 30 },
+                { id: 'familiar_1', label: 'María Olivo\n(Esposa)', type: 'familiar', size: 25 },
+                { id: 'familiar_2', label: 'Pedro Olivo\n(Hijo)', type: 'familiar', size: 25 },
+                { id: 'entidad_1', label: 'Frente Norte', type: 'entidad_ilegal', size: 35 },
+                { id: 'doc_1', label: 'Testimonio\n2002-034', type: 'documento', size: 20 },
+                { id: 'doc_2', label: 'Acta\nDefunción', type: 'documento', size: 20 },
+                { id: 'lugar_1', label: 'Antioquia', type: 'lugar', size: 25 },
+                { id: 'lugar_2', label: 'Vereda\nEl Carmen', type: 'lugar', size: 20 }
+            ],
+            edges: [
+                { source: 'victimario_1', target: 'victima_1', label: 'victimización' },
+                { source: 'victimario_2', target: 'victima_1', label: 'victimización' },
+                { source: 'victima_1', target: 'familiar_1', label: 'familiar' },
+                { source: 'victima_1', target: 'familiar_2', label: 'familiar' },
+                { source: 'victimario_2', target: 'victimario_1', label: 'pertenece' },
+                { source: 'victimario_1', target: 'entidad_1', label: 'opera en' },
+                { source: 'victima_1', target: 'doc_1', label: 'mencionado' },
+                { source: 'victima_1', target: 'doc_2', label: 'mencionado' },
+                { source: 'familiar_1', target: 'doc_1', label: 'mencionado' },
+                { source: 'victima_1', target: 'lugar_1', label: 'ubicado' },
+                { source: 'victima_1', target: 'lugar_2', label: 'ubicado' },
+                { source: 'entidad_1', target: 'lugar_1', label: 'opera en' }
+            ]
+        };
+
+        // Mapeo de colores
+        const colorMap = {
+            'victima': '#4A90E2',
+            'victimario': '#E74C3C',
+            'familiar': '#F39C12',
+            'entidad_ilegal': '#8B0000',
+            'documento': '#FF6B6B',
+            'lugar': '#96CEB4'
+        };
+
+        // Configuración del grafo G6
+        const container = document.getElementById('graph-container');
+        const width = container.offsetWidth;
+        const height = container.offsetHeight;
+
+        const graph = new G6.Graph({
+            container: 'graph-container',
+            width,
+            height,
+            layout: {
+                type: 'force',
+                preventOverlap: true,
+                nodeSpacing: 100,
+                linkDistance: 150,
+                nodeStrength: -300,
+                edgeStrength: 0.5,
+                collideStrength: 0.8,
+                alpha: 0.8,
+                alphaDecay: 0.028,
+                alphaMin: 0.01
+            },
+            defaultNode: {
+                size: 30,
+                style: {
+                    lineWidth: 3,
+                    stroke: '#fff',
+                    shadowColor: 'rgba(0,0,0,0.3)',
+                    shadowBlur: 10
+                },
+                labelCfg: {
+                    style: {
+                        fill: '#fff',
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        textBaseline: 'middle',
+                        shadowColor: 'rgba(0,0,0,0.5)',
+                        shadowBlur: 4
+                    }
+                }
+            },
+            defaultEdge: {
+                style: {
+                    stroke: '#e2e2e2',
+                    lineWidth: 2,
+                    endArrow: {
+                        path: G6.Arrow.triangle(8, 10, 0),
+                        fill: '#e2e2e2'
+                    }
+                },
+                labelCfg: {
+                    autoRotate: true,
+                    style: {
+                        fill: '#666',
+                        fontSize: 10,
+                        background: {
+                            fill: '#fff',
+                            padding: [2, 4, 2, 4],
+                            radius: 4
+                        }
+                    }
+                }
+            },
+            modes: {
+                default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
+            },
+            nodeStateStyles: {
+                hover: {
+                    lineWidth: 5,
+                    stroke: '#FFD700',
+                    shadowColor: 'rgba(255, 215, 0, 0.6)',
+                    shadowBlur: 20
+                },
+                selected: {
+                    lineWidth: 5,
+                    stroke: '#FFD700',
+                    shadowColor: 'rgba(255, 215, 0, 0.8)',
+                    shadowBlur: 25
+                }
+            },
+            edgeStateStyles: {
+                hover: {
+                    lineWidth: 4,
+                    stroke: '#FFD700'
+                }
+            }
+        });
+
+        // Preparar datos con colores
+        data.nodes.forEach(node => {
+            node.style = {
+                fill: colorMap[node.type] || '#888',
+                lineWidth: 3,
+                stroke: '#fff'
+            };
+        });
+
+        // Cargar datos
+        graph.data(data);
+        graph.render();
+
+        // Eventos interactivos
+        graph.on('node:mouseenter', (e) => {
+            graph.setItemState(e.item, 'hover', true);
+        });
+
+        graph.on('node:mouseleave', (e) => {
+            graph.setItemState(e.item, 'hover', false);
+        });
+
+        graph.on('node:click', (e) => {
+            const node = e.item;
+            const model = node.getModel();
+            
+            // Actualizar panel de información
+            const infoPanel = document.getElementById('node-info');
+            infoPanel.innerHTML = `
+                <h4>${model.label}</h4>
+                <div class="stat-item">
+                    <span class="stat-label">Tipo:</span>
+                    <span class="stat-value">${model.type}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">ID:</span>
+                    <span class="stat-value">${model.id}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Tamaño:</span>
+                    <span class="stat-value">${model.size}px</span>
+                </div>
+            `;
+            
+            // Highlight nodo y sus conexiones
+            graph.getNodes().forEach(node => {
+                graph.clearItemStates(node);
+            });
+            graph.setItemState(node, 'selected', true);
+            
+            // Highlight aristas conectadas
+            const edges = node.getEdges();
+            edges.forEach(edge => {
+                graph.setItemState(edge, 'hover', true);
+            });
+        });
+
+        // Funciones de control
+        function fitView() {
+            graph.fitView(20);
+        }
+
+        function resetZoom() {
+            graph.zoomTo(1);
+            graph.fitCenter();
+        }
+
+        let physicsEnabled = true;
+        function togglePhysics() {
+            if (physicsEnabled) {
+                graph.updateLayout({
+                    type: 'circular'
+                });
+            } else {
+                graph.updateLayout({
+                    type: 'force',
+                    preventOverlap: true,
+                    nodeSpacing: 100
+                });
+            }
+            physicsEnabled = !physicsEnabled;
+        }
+
+        function downloadGraph() {
+            graph.downloadFullImage('grafo-caso-oswaldo-olivo', 'image/png', {
+                backgroundColor: '#fff',
+                padding: 30
+            });
+        }
+
+        // Responsive
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('graph-container');
+            graph.changeSize(container.offsetWidth, container.offsetHeight);
+            graph.fitView(20);
+        });
+
+        // Auto-fit inicial
+        setTimeout(() => {
+            graph.fitView(20);
+        }, 1000);
+    </script>
+</body>
+</html>

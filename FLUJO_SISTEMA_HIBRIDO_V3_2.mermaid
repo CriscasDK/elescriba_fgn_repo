@@ -1,0 +1,175 @@
+```mermaid
+graph TB
+    subgraph "🌐 INTERFAZ USUARIO"
+        UI[fa:fa-desktop Dashboard Dash v3.2]
+        QUERY_INPUT[fa:fa-keyboard Entrada de Consulta]
+        RESULTS_PANEL[fa:fa-chart-bar Panel Resultados]
+    end
+
+    subgraph "🧠 MOTOR INTELIGENCIA v3.2"
+        CLASSIFIER[fa:fa-brain Clasificador Mejorado]
+
+        subgraph "📊 Tipos de Consulta"
+            BD_TYPE[fa:fa-database BD: Cuantitativo]
+            RAG_TYPE[fa:fa-robot RAG: Cualitativo]
+            HYBRID_TYPE[fa:fa-code-merge HÍBRIDO: BD + RAG]
+        end
+
+        CLASSIFIER --> BD_TYPE
+        CLASSIFIER --> RAG_TYPE
+        CLASSIFIER --> HYBRID_TYPE
+    end
+
+    subgraph "🔀 PROCESADOR HÍBRIDO v3.2"
+        SPLITTER[fa:fa-scissors División Inteligente]
+        GEO_FILTER[fa:fa-map-marker Filtro Geográfico Mejorado]
+        PERSON_FILTER[fa:fa-user Filtro Personas Case-Insensitive]
+
+        HYBRID_TYPE --> SPLITTER
+        SPLITTER --> GEO_FILTER
+        SPLITTER --> PERSON_FILTER
+    end
+
+    subgraph "📊 MOTOR BASE DATOS"
+        BD_ROUTER[fa:fa-route Enrutador BD]
+
+        subgraph "🗃️ Tipos BD"
+            PERSON_QUERY[fa:fa-users Consultas Personas]
+            GEO_QUERY[fa:fa-globe Consultas Geográficas]
+            GENERAL_QUERY[fa:fa-table Consultas Generales]
+        end
+
+        BD_ROUTER --> PERSON_QUERY
+        BD_ROUTER --> GEO_QUERY
+        BD_ROUTER --> GENERAL_QUERY
+    end
+
+    subgraph "🗄️ BASE DATOS POSTGRESQL"
+        POSTGRES[(fa:fa-database PostgreSQL)]
+
+        subgraph "📋 Tablas Principales"
+            T_DOCUMENTOS[fa:fa-file Documentos]
+            T_PERSONAS[fa:fa-user Personas]
+            T_METADATOS[fa:fa-info Metadatos]
+            T_LUGARES[fa:fa-map Análisis Lugares]
+            T_MV_GEO[fa:fa-eye Vista Materializada Geográfica]
+        end
+
+        POSTGRES --> T_DOCUMENTOS
+        POSTGRES --> T_PERSONAS
+        POSTGRES --> T_METADATOS
+        POSTGRES --> T_LUGARES
+        POSTGRES --> T_MV_GEO
+    end
+
+    subgraph "🤖 MOTOR RAG"
+        RAG_PROCESSOR[fa:fa-cog Procesador RAG]
+        AZURE_SEARCH[fa:fa-search Azure Search]
+        GPT4[fa:fa-brain GPT-4.1]
+
+        subgraph "🔍 Índices Azure"
+            CHUNKS_INDEX[fa:fa-puzzle-piece Chunks Index v2]
+            DOCS_INDEX[fa:fa-file-text Docs Index]
+        end
+
+        RAG_PROCESSOR --> AZURE_SEARCH
+        AZURE_SEARCH --> CHUNKS_INDEX
+        AZURE_SEARCH --> DOCS_INDEX
+        AZURE_SEARCH --> GPT4
+    end
+
+    subgraph "🔄 COMBINADOR RESULTADOS v3.2"
+        MERGER[fa:fa-code-merge Fusionador Mejorado]
+        VALIDATOR[fa:fa-check Validador Campos Completos]
+        FORMATTER[fa:fa-format-indent Formateador]
+
+        MERGER --> VALIDATOR
+        VALIDATOR --> FORMATTER
+    end
+
+    subgraph "⚙️ VALIDACIÓN CAMPOS v3.2"
+        FIELD_MAPPER[fa:fa-map Campo Mapper]
+        TOTAL_MENCIONES[fa:fa-hashtag total_menciones ✅]
+        DOCUMENTOS_FIELD[fa:fa-file-text documentos ✅]
+        VICTIMAS_FIELD[fa:fa-users victimas ✅]
+        FUENTES_FIELD[fa:fa-book fuentes ✅]
+
+        VALIDATOR --> FIELD_MAPPER
+        FIELD_MAPPER --> TOTAL_MENCIONES
+        FIELD_MAPPER --> DOCUMENTOS_FIELD
+        FIELD_MAPPER --> VICTIMAS_FIELD
+        FIELD_MAPPER --> FUENTES_FIELD
+    end
+
+    %% Flujo Principal
+    UI --> QUERY_INPUT
+    QUERY_INPUT --> CLASSIFIER
+
+    %% Rutas BD
+    BD_TYPE --> BD_ROUTER
+    GEO_FILTER --> GEO_QUERY
+    PERSON_FILTER --> PERSON_QUERY
+
+    %% Conexiones BD Específicas
+    PERSON_QUERY --> T_PERSONAS
+    GEO_QUERY --> T_LUGARES
+    GEO_QUERY --> T_MV_GEO
+    GENERAL_QUERY --> T_DOCUMENTOS
+
+    %% Rutas RAG
+    RAG_TYPE --> RAG_PROCESSOR
+
+    %% Combinación Híbrida
+    T_PERSONAS --> MERGER
+    T_LUGARES --> MERGER
+    T_DOCUMENTOS --> MERGER
+    GPT4 --> MERGER
+
+    %% Validación de Campos
+    MERGER --> VALIDATOR
+
+    %% Salida
+    FORMATTER --> RESULTS_PANEL
+    RESULTS_PANEL --> UI
+
+    %% Casos de Uso Específicos
+    subgraph "🎯 CASOS DE USO v3.2"
+        CASO1[fa:fa-map Geográfico: 'victimas en Antioquia + patrones']
+        CASO2[fa:fa-user Personas: 'Oswaldo Olivo + Rosa Edith Sierra']
+        CASO3[fa:fa-database BD Puro: 'lista de víctimas']
+        CASO4[fa:fa-brain RAG Puro: 'análisis de patrones']
+
+        CASO1 --> HYBRID_TYPE
+        CASO2 --> HYBRID_TYPE
+        CASO3 --> BD_TYPE
+        CASO4 --> RAG_TYPE
+    end
+
+    %% Resultados Específicos
+    subgraph "✅ RESULTADOS GARANTIZADOS"
+        RESULT1[fa:fa-check 997 víctimas Antioquia]
+        RESULT2[fa:fa-check 8 docs Oswaldo Olivo]
+        RESULT3[fa:fa-check Campos completos siempre]
+        RESULT4[fa:fa-check Sin desafinación cruzada]
+
+        TOTAL_MENCIONES --> RESULT1
+        DOCUMENTOS_FIELD --> RESULT2
+        VICTIMAS_FIELD --> RESULT3
+        FUENTES_FIELD --> RESULT4
+    end
+
+    %% Estilos
+    classDef hibrido fill:#fff3e0,stroke:#ff9800,stroke-width:3px
+    classDef bd fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    classDef rag fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    classDef data fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
+    classDef validation fill:#ffebee,stroke:#f44336,stroke-width:2px
+    classDef success fill:#e8f5e8,stroke:#4caf50,stroke-width:3px
+
+    class HYBRID_TYPE,SPLITTER,MERGER hibrido
+    class BD_TYPE,BD_ROUTER,PERSON_QUERY,GEO_QUERY,GENERAL_QUERY bd
+    class RAG_TYPE,RAG_PROCESSOR,AZURE_SEARCH,GPT4 rag
+    class POSTGRES,T_DOCUMENTOS,T_PERSONAS,T_METADATOS,T_LUGARES,T_MV_GEO data
+    class VALIDATOR,FIELD_MAPPER,TOTAL_MENCIONES,DOCUMENTOS_FIELD,VICTIMAS_FIELD,FUENTES_FIELD validation
+    class RESULT1,RESULT2,RESULT3,RESULT4 success
+```

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafo AGE - Nodos Más Conectados</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #000511;
+            color: white;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #controls {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 280px;
+            max-height: 80vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #info {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4ECDC4;
+            border-bottom: 2px solid #4ECDC4;
+            padding-bottom: 8px;
+        }
+
+        .section {
+            margin: 15px 0;
+        }
+
+        .section h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .level-control {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 6px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .level-control:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .level-control input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .level-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, #4ECDC4 0%, #45B7D1 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 3px;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .control-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+
+        .slider-control {
+            margin: 10px 0;
+        }
+
+        .slider-control input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .slider-value {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .stats {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        .node-details {
+            background: rgba(78, 205, 196, 0.1);
+            border-left: 3px solid #4ECDC4;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
+
+        .edge-details {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 3px solid #FF6B6B;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        
+        <div id="controls">
+            <div class="title">🎛️ Grafo AGE - Nodos Más Conectados</div>
+
+            <div class="section">
+                <h4>📊 Estadísticas:</h4>
+                <div class="stats">
+                    Nodos: 81<br>
+                    Aristas: 100<br>
+                    Niveles: 3
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>🎯 Vista:</h4>
+                <button class="control-button" onclick="resetCamera()">🎯 Centrar</button>
+                <button class="control-button" onclick="toggleRotation()">🔄 Rotar</button>
+                <button class="control-button" onclick="toggleLabels()">🏷️ Etiquetas</button>
+                <button class="control-button" onclick="exportView()">💾 Exportar</button>
+            </div>
+
+            <div class="section">
+                <h4>🔍 Filtros:</h4>
+                <div class="slider-control">
+                    <label>Tamaño mínimo:</label>
+                    <input type="range" id="sizeFilter" min="0" max="15" value="0">
+                    <div class="slider-value">Mínimo: <span id="sizeValue">0</span></div>
+                </div>
+
+                <div class="slider-control">
+                    <label>Peso de aristas:</label>
+                    <input type="range" id="weightFilter" min="0" max="1" step="0.1" value="0">
+                    <div class="slider-value">Mínimo: <span id="weightValue">0%</span></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>📑 Niveles:</h4>
+                <div id="level-controls"></div>
+            </div>
+        </div>
+        
+
+        <div id="info">
+            <div id="node-info">
+                <strong>💡 Navegación:</strong><br>
+                • Click en nodos/aristas para detalles<br>
+                • Rueda del mouse para zoom<br>
+                • Arrastra para rotar la vista
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // DATOS EMBEBIDOS
+        const networkData = {
+            nodes: [{"id": "844424930131969", "name": "2015005204_27J_6178C4.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419980006178", "tipo": "documento", "archivo": "2015005204_27J_6178C4.pdf", "cuaderno": "Cuaderno 4", "despacho": "59", "fecha_creacion": "2014-02-18", "tipo_documental": "27. Oficios", "entidad_productora": "Fiscalia General De La Nacion", "archivo_normalizado": "2015005204_27j_6178c4.pdf"}, "x": 0.0, "y": 29.0, "z": 0.0}, {"id": "844424930132457", "name": "2015005204_27AA_6178C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419940006178", "tipo": "documento", "archivo": "2015005204_27AA_6178C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2011-05-05", "tipo_documental": "27. Oficios", "entidad_productora": "Fiscalia General De La Nacion", "archivo_normalizado": "2015005204_27aa_6178c2.pdf"}, "x": 4.002025477707006, "y": 33.00202547770701, "z": 0.0}, {"id": "844424930131974", "name": "2015005204_11T_6898C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419900006898", "tipo": "documento", "archivo": "2015005204_11T_6898C1.pdf", "cuaderno": "CUADERNO 1", "despacho": "59", "fecha_creacion": "2008-10-01", "tipo_documental": "11. Declaraciones juradas", "entidad_productora": "FISCALIA GENERAL DE LA NACION", "archivo_normalizado": "2015005204_11t_6898c1.pdf"}, "x": 8.004050955414012, "y": 37.004050955414016, "z": 0.0}, {"id": "844424930131975", "name": "2015005204_24D_0017C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420030010017", "tipo": "documento", "archivo": "2015005204_24D_0017C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "2012-04-10", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "Fiscalia General De La Nacion", "archivo_normalizado": "2015005204_24d_0017c1.pdf"}, "x": 12.006076433121018, "y": 41.006076433121024, "z": 0.0}, {"id": "844424930131979", "name": "2015005204_24H_6963C3.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419870006963", "tipo": "documento", "archivo": "2015005204_24H_6963C3.pdf", "cuaderno": "Cuaderno 3", "despacho": "59", "fecha_creacion": "2023-06-28", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n", "archivo_normalizado": "2015005204_24h_6963c3.pdf"}, "x": 16.008101910828024, "y": 45.008101910828024, "z": 0.0}, {"id": "844424930132190", "name": "2015005204_24B_6176C3.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419970006176", "tipo": "documento", "archivo": "2015005204_24B_6176C3.pdf", "cuaderno": "Cuaderno 3", "despacho": "59", "fecha_creacion": "2023-06-28", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "FiscalÃ�a general de la naciÃ³n", "archivo_normalizado": "2015005204_24b_6176c3.pdf"}, "x": 20.01012738853503, "y": 49.01012738853503, "z": 0.0}, {"id": "844424930131980", "name": "2015005204_27E_9356C3.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419920009356", "tipo": "documento", "archivo": "2015005204_27E_9356C3.pdf", "cuaderno": "Cuaderno 3 ", "despacho": "59", "fecha_creacion": "2022-08-09", "tipo_documental": "27. Oficios", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n", "archivo_normalizado": "2015005204_27e_9356c3.pdf"}, "x": 24.012152866242037, "y": 53.01215286624205, "z": 0.0}, {"id": "844424930132056", "name": "2015005204_24A_9356C3.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419920009356", "tipo": "documento", "archivo": "2015005204_24A_9356C3.pdf", "cuaderno": "Cuaderno 3", "despacho": "11001606606419920009356", "fecha_creacion": "2021-01-26", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n", "archivo_normalizado": "2015005204_24a_9356c3.pdf"}, "x": 28.01417834394904, "y": 57.01417834394904, "z": 0.0}, {"id": "844424930132148", "name": "2015005204_24L_1139C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420000001139", "tipo": "documento", "archivo": "2015005204_24L_1139C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2014-09-09", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "DirecciÃ³n Nacional Especializada FiscalÃ�a de DH y DIH", "archivo_normalizado": "2015005204_24l_1139c2.pdf"}, "x": 32.01620382165605, "y": 61.01620382165605, "z": 0.0}, {"id": "844424930132157", "name": "2015005204_20A_9356C3.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419920009356", "tipo": "documento", "archivo": "2015005204_20A_9356C3.pdf", "cuaderno": "Cuaderno 3", "despacho": "59", "fecha_creacion": "2021-06-11", "tipo_documental": "20. Informes de PolicÃ�a Judicial", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n ", "archivo_normalizado": "2015005204_20a_9356c3.pdf"}, "x": 36.01822929936306, "y": 65.01822929936306, "z": 0.0}, {"id": "844424930132163", "name": "2015005204_20A_1139C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420000001139", "tipo": "documento", "archivo": "2015005204_20A_1139C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2014-09-24", "tipo_documental": "20. Informes de PolicÃ�a Judicial", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n ", "archivo_normalizado": "2015005204_20a_1139c2.pdf"}, "x": 40.02025477707006, "y": 69.02025477707005, "z": 0.0}, {"id": "844424930132221", "name": "2015005204_11H_9356C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419920009356", "tipo": "documento", "archivo": "2015005204_11H_9356C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "0001-01-01", "tipo_documental": "11. Declaraciones juradas", "entidad_productora": "PersonerÃ�a Municipal de Mesetas", "archivo_normalizado": "2015005204_11h_9356c1.pdf"}, "x": 44.022280254777066, "y": 73.02228025477706, "z": 0.0}, {"id": "844424930131983", "name": "2015005204_20E_7688C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420010007688", "tipo": "documento", "archivo": "2015005204_20E_7688C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "2009-09-17", "tipo_documental": "20. Informes de PolicÃ�a Judicial", "entidad_productora": "FiscalÃ�a General De La NaciÃ³n", "archivo_normalizado": "2015005204_20e_7688c1.pdf"}, "x": 48.02430573248407, "y": 77.02430573248408, "z": 0.0}, {"id": "844424930131993", "name": "2015005204_24D_6399C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420020006399", "tipo": "documento", "archivo": "2015005204_24D_6399C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2016-01-28", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "Fiscalia General De La Nacion", "archivo_normalizado": "2015005204_24d_6399c2.pdf"}, "x": 52.026331210191074, "y": 81.02633121019107, "z": 0.0}, {"id": "844424930132051", "name": "2015005204_26E_7688C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420010007688", "tipo": "documento", "archivo": "2015005204_26E_7688C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2012-06-06", "tipo_documental": "26. Memoriales - Comunicaciones", "entidad_productora": "Instituto Nacional Penitenciario Y Carcelario INPEC ", "archivo_normalizado": "2015005204_26e_7688c2.pdf"}, "x": 56.02835668789808, "y": 85.02835668789808, "z": 0.0}, {"id": "844424930132080", "name": "2015005204_32AA_7688CA2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420010007688", "tipo": "documento", "archivo": "2015005204_32AA_7688CA2.pdf", "cuaderno": "Cuaderno Anexo 2", "despacho": "59", "fecha_creacion": "2011-09-09", "tipo_documental": "32. Pruebas documentales", "entidad_productora": "Instituto Nacional Penitenciario Y Carcelario INPEC ", "archivo_normalizado": "2015005204_32aa_7688ca2.pdf"}, "x": 60.03038216560509, "y": 89.0303821656051, "z": 0.0}, {"id": "844424930132328", "name": "2015005204_20A_7688C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420010007688", "tipo": "documento", "archivo": "2015005204_20A_7688C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "2004-10-28", "tipo_documental": "20. Informes de PolicÃ�a Judicial", "entidad_productora": "Fiscalia General De La Nacion", "archivo_normalizado": "2015005204_20a_7688c1.pdf"}, "x": 64.0324076433121, "y": 93.03240764331208, "z": 0.0}, {"id": "844424930132372", "name": "2015005204_27AO_7688C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420010007688", "tipo": "documento", "archivo": "2015005204_27AO_7688C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "2010-04-23", "tipo_documental": "27. Oficios", "entidad_productora": "FGN ", "archivo_normalizado": "2015005204_27ao_7688c1.pdf"}, "x": 68.0344331210191, "y": 97.0344331210191, "z": 0.0}, {"id": "844424930131988", "name": "2015005204_26K_6337C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419900006337", "tipo": "documento", "archivo": "2015005204_26K_6337C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "1990-05-08", "tipo_documental": "26. Memoriales - Comunicaciones", "entidad_productora": "Juzgado Segundo De InstrucciÃ³n Criminal ", "archivo_normalizado": "2015005204_26k_6337c1.pdf"}, "x": 72.03645859872611, "y": 101.03645859872611, "z": 0.0}, {"id": "844424930132014", "name": "2015005204_26X_6337C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420010001110", "tipo": "documento", "archivo": "2015005204_26X_6337C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "1990-03-20", "tipo_documental": "26. Memoriales - Comunicaciones", "entidad_productora": "ProcuradurÃ�a Departamental", "archivo_normalizado": "2015005204_26x_6337c1.pdf"}, "x": 76.03848407643311, "y": 105.03848407643311, "z": 0.0}, {"id": "844424930131990", "name": "2015005204_27AF_1139C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420000001139", "tipo": "documento", "archivo": "2015005204_27AF_1139C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "2002-04-19", "tipo_documental": "27. Oficios", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n ", "archivo_normalizado": "2015005204_27af_1139c1.pdf"}, "x": 80.04050955414012, "y": 109.04050955414013, "z": 0.0}, {"id": "844424930132186", "name": "2015005204_24N_1139C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420000001139", "tipo": "documento", "archivo": "2015005204_24N_1139C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "2002-04-15", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n ", "archivo_normalizado": "2015005204_24n_1139c1.pdf"}, "x": 84.04253503184712, "y": 113.04253503184714, "z": 0.0}, {"id": "844424930132000", "name": "2015005204_5_0017C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606608419880000017", "tipo": "documento", "archivo": "2015005204_5_0017C1.pdf", "cuaderno": " Cuaderno 1", "despacho": "59", "fecha_creacion": "1998-02-22", "tipo_documental": "5. Actas de entrega de elementos", "entidad_productora": "JUZGADO 49 INSTRUCCION CRIMINAL ", "archivo_normalizado": "2015005204_5_0017c1.pdf"}, "x": 88.04456050955413, "y": 117.04456050955413, "z": 0.0}, {"id": "844424930132067", "name": "2015005204_13A_7688C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606420010007688", "tipo": "documento", "archivo": "2015005204_13A_7688C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2007-03-13", "tipo_documental": "13. Denuncia", "entidad_productora": "Adelia Oyola", "archivo_normalizado": "2015005204_13a_7688c2.pdf"}, "x": 92.04658598726114, "y": 121.04658598726115, "z": 0.0}, {"id": "844424930132070", "name": "2015005204_27B_6978_C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419990006978", "tipo": "documento", "archivo": "2015005204_27B_6978_C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "1999-07-02", "tipo_documental": "27. Oficios", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n", "archivo_normalizado": "2015005204_27b_6978_c1.pdf"}, "x": 96.04861146496815, "y": 125.04861146496815, "z": 0.0}, {"id": "844424930132093", "name": "2015005204_24G_9356C3.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419920009356", "tipo": "documento", "archivo": "2015005204_24G_9356C3.pdf", "cuaderno": "Cuaderno 3", "despacho": "59", "fecha_creacion": "2024-02-20", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": "FiscalÃ�a General de la NaciÃ³n ", "archivo_normalizado": "2015005204_24g_9356c3.pdf"}, "x": 100.05063694267514, "y": 129.05063694267514, "z": 0.0}, {"id": "844424930132097", "name": "2015005204_24D_0141C1.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419419920010141", "tipo": "documento", "archivo": "2015005204_24D_0141C1.pdf", "cuaderno": "Cuaderno 1", "despacho": "59", "fecha_creacion": "1992-12-24", "tipo_documental": "24. Resoluciones de sustanciaciÃ³n", "entidad_productora": " FiscalÃ�a General De La NaciÃ³n ", "archivo_normalizado": "2015005204_24d_0141c1.pdf"}, "x": 104.05266242038215, "y": 133.05266242038215, "z": 0.0}, {"id": "844424930132233", "name": "2015005204_27AV_6178C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419940006178", "tipo": "documento", "archivo": "2015005204_27AV_6178C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2011-10-19", "tipo_documental": "27. Oficios", "entidad_productora": "Fiscalia General De La Nacion", "archivo_normalizado": "2015005204_27av_6178c2.pdf"}, "x": 108.05468789808917, "y": 137.05468789808918, "z": 0.0}, {"id": "844424930132267", "name": "2015005204_27U_8650C2.pdf", "type": "Documento", "level": 0, "size": 3, "weight": 1.0, "metadata": {"nuc": "11001606606419850008650", "tipo": "documento", "archivo": "2015005204_27U_8650C2.pdf", "cuaderno": "Cuaderno 2", "despacho": "59", "fecha_creacion": "2016-11-02", "tipo_documental": "27. Oficios", "entidad_productora": "SIJIN", "archivo_normalizado": "2015005204_27u_8650c2.pdf"}, "x": 112.05671337579616, "y": 141.05671337579616, "z": 0.0}, {"id": "1125899906842625", "name": "Eber Jhon Penata Torres", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Eber Jhon Penata Torres", "documentos": ["2015005204_27J_6178C4.pdf"], "nombre_normalizado": "eber jhon penata torres"}, "x": 0.0, "y": 38.0, "z": 60.0}, {"id": "1125899906842626", "name": "Jhon Jairo Quintero Zapata", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Jhon Jairo Quintero Zapata", "documentos": ["2015005204_27J_6178C4.pdf"], "nombre_normalizado": "jhon jairo quintero zapata"}, "x": 4.002025477707006, "y": 42.00202547770701, "z": 60.0}, {"id": "1125899906842749", "name": "Ana Matilde Guzmán Borja", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Ana Matilde Guzmán Borja", "documentos": ["2015005204_27S_6178C5.pdf"], "nombre_normalizado": "ana matilde guzmán borja"}, "x": 8.004050955414012, "y": 46.004050955414016, "z": 60.0}, {"id": "1125899906843005", "name": "Diego Fernando Murillo Mosquera", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Diego Fernando Murillo Mosquera", "documentos": ["2015005204_27AA_6178C2.pdf"], "nombre_normalizado": "diego fernando murillo mosquera"}, "x": 12.006076433121017, "y": 50.00607643312102, "z": 60.0}, {"id": "1125899906842627", "name": "José Neiger Emir Leguizamo Vanegas:", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "José Neiger Emir Leguizamo Vanegas:", "documentos": ["2015005204_11T_6898C1.pdf"], "nombre_normalizado": "josé neiger emir leguizamo vanegas:"}, "x": 16.008101910828024, "y": 54.008101910828024, "z": 60.0}, {"id": "1125899906842628", "name": "José Tomás Romero:", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "José Tomás Romero:", "documentos": ["2015005204_11T_6898C1.pdf"], "nombre_normalizado": "josé tomás romero:"}, "x": 20.010127388535032, "y": 58.01012738853503, "z": 60.0}, {"id": "1125899906842629", "name": "Luis Arcesio Leyton González", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Luis Arcesio Leyton González", "documentos": ["2015005204_24D_0017C1.pdf"], "nombre_normalizado": "luis arcesio leyton gonzález"}, "x": 24.012152866242033, "y": 62.01215286624204, "z": 60.0}, {"id": "1125899906842630", "name": "Sandra Lorena Peña Rivas", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Sandra Lorena Peña Rivas", "documentos": ["2015005204_24D_0017C1.pdf"], "nombre_normalizado": "sandra lorena peña rivas"}, "x": 28.01417834394904, "y": 66.01417834394904, "z": 60.0}, {"id": "1125899906842632", "name": "Lorenzo Useche Díaz", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Lorenzo Useche Díaz", "documentos": ["2015005204_24H_6963C3.pdf"], "nombre_normalizado": "lorenzo useche díaz"}, "x": 32.01620382165605, "y": 70.01620382165605, "z": 60.0}, {"id": "1125899906842633", "name": "José Tomas Romero", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "José Tomas Romero", "documentos": ["2015005204_24H_6963C3.pdf"], "nombre_normalizado": "josé tomas romero"}, "x": 36.01822929936306, "y": 74.01822929936304, "z": 60.0}, {"id": "1125899906842634", "name": "Diana Paola Viveros", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Diana Paola Viveros", "documentos": ["2015005204_24H_6963C3.pdf"], "nombre_normalizado": "diana paola viveros"}, "x": 40.020254777070065, "y": 78.02025477707006, "z": 60.0}, {"id": "1125899906842821", "name": "Diana Paola Viveros Cangrejo:", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Diana Paola Viveros Cangrejo:", "documentos": ["2015005204_24B_6176C3.pdf"], "nombre_normalizado": "diana paola viveros cangrejo:"}, "x": 44.02228025477707, "y": 82.02228025477707, "z": 60.0}, {"id": "1125899906842822", "name": "Lorenzo Useche Díaz:", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Lorenzo Useche Díaz:", "documentos": ["2015005204_24B_6176C3.pdf"], "nombre_normalizado": "lorenzo useche díaz:"}, "x": 48.024305732484066, "y": 86.02430573248408, "z": 60.0}, {"id": "1125899906842823", "name": "José Tomas Romero:", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "José Tomas Romero:", "documentos": ["2015005204_24B_6176C3.pdf"], "nombre_normalizado": "josé tomas romero:"}, "x": 52.026331210191074, "y": 90.02633121019109, "z": 60.0}, {"id": "1125899906842631", "name": "Óscar Fernando Albán Caicedo", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Óscar Fernando Albán Caicedo", "documentos": ["2015005204_24D_0017C1.pdf"], "nombre_normalizado": "óscar fernando albán caicedo"}, "x": 56.02835668789808, "y": 94.0283566878981, "z": 60.0}, {"id": "1125899906842736", "name": "Ricardo Céspedes Murcia", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Ricardo Céspedes Murcia", "documentos": ["2015005204_24M_6963C1.pdf"], "nombre_normalizado": "ricardo céspedes murcia"}, "x": 60.03038216560508, "y": 98.03038216560509, "z": 60.0}, {"id": "1125899906842795", "name": "José Albeiro García Zambrano", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "José Albeiro García Zambrano", "documentos": ["2015005204_27X_7688CA2.pdf"], "nombre_normalizado": "josé albeiro garcía zambrano"}, "x": 64.0324076433121, "y": 102.0324076433121, "z": 60.0}, {"id": "1125899906842921", "name": "Edgar Humberto Hernández Vargas", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Edgar Humberto Hernández Vargas", "documentos": ["2015005204_20A_7688C1.pdf"], "nombre_normalizado": "edgar humberto hernández vargas"}, "x": 68.0344331210191, "y": 106.0344331210191, "z": 60.0}, {"id": "1125899906842922", "name": "Leyla Santos Lozano", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Leyla Santos Lozano", "documentos": ["2015005204_20A_7688C1.pdf"], "nombre_normalizado": "leyla santos lozano"}, "x": 72.03645859872611, "y": 110.03645859872611, "z": 60.0}, {"id": "1125899906842923", "name": "Adella Oyola", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Adella Oyola", "documentos": ["2015005204_20A_7688C1.pdf"], "nombre_normalizado": "adella oyola"}, "x": 76.03848407643312, "y": 114.03848407643312, "z": 60.0}, {"id": "1125899906842924", "name": "Arnobio Useche Oyola", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Arnobio Useche Oyola", "documentos": ["2015005204_20A_7688C1.pdf"], "nombre_normalizado": "arnobio useche oyola"}, "x": 80.04050955414013, "y": 118.04050955414013, "z": 60.0}, {"id": "1125899906842635", "name": "Oscar Reynaldo Hurtado Muñoz", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Oscar Reynaldo Hurtado Muñoz", "documentos": ["2015005204_26K_6337C1.pdf"], "nombre_normalizado": "oscar reynaldo hurtado muñoz"}, "x": 84.04253503184711, "y": 122.04253503184711, "z": 60.0}, {"id": "1125899906842636", "name": "Joaquín Romero Díaz", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Joaquín Romero Díaz", "documentos": ["2015005204_26K_6337C1.pdf"], "nombre_normalizado": "joaquín romero díaz"}, "x": 88.04456050955415, "y": 126.04456050955412, "z": 60.0}, {"id": "1125899906842650", "name": "Bernardo Echeverry Ossa", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Bernardo Echeverry Ossa", "documentos": ["2015005204_26X_6337C1.pdf"], "nombre_normalizado": "bernardo echeverry ossa"}, "x": 92.04658598726115, "y": 130.04658598726112, "z": 60.0}, {"id": "1125899906842651", "name": "Amanda Quintero", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Amanda Quintero", "documentos": ["2015005204_26X_6337C1.pdf"], "nombre_normalizado": "amanda quintero"}, "x": 96.04861146496813, "y": 134.04861146496813, "z": 60.0}, {"id": "1125899906842637", "name": "Sonia Liliana Preciado Ortega", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Sonia Liliana Preciado Ortega", "documentos": ["2015005204_27AF_1139C1.pdf"], "nombre_normalizado": "sonia liliana preciado ortega"}, "x": 100.05063694267514, "y": 138.05063694267517, "z": 60.0}, {"id": "1125899906842638", "name": "Aldemar Ariza", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Aldemar Ariza", "documentos": ["2015005204_27AF_1139C1.pdf"], "nombre_normalizado": "aldemar ariza"}, "x": 104.05266242038215, "y": 142.05266242038218, "z": 60.0}, {"id": "1125899906842639", "name": "Franco Leonardo Navarro", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Franco Leonardo Navarro", "documentos": ["2015005204_27AF_1139C1.pdf"], "nombre_normalizado": "franco leonardo navarro"}, "x": 108.05468789808916, "y": 146.05468789808918, "z": 60.0}, {"id": "1125899906842640", "name": "Manuel Demetrio Barragán Vargas", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Manuel Demetrio Barragán Vargas", "documentos": ["2015005204_27AF_1139C1.pdf"], "nombre_normalizado": "manuel demetrio barragán vargas"}, "x": 112.05671337579616, "y": 150.0567133757962, "z": 60.0}, {"id": "1125899906842812", "name": "Anselmo Ruiz Peña", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Anselmo Ruiz Peña", "documentos": ["2015005204_24N_1139C1.pdf"], "nombre_normalizado": "anselmo ruiz peña"}, "x": 116.05873885350316, "y": 154.05873885350317, "z": 60.0}, {"id": "1125899906842813", "name": "Leonardo Navarro Franco", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Leonardo Navarro Franco", "documentos": ["2015005204_24N_1139C1.pdf"], "nombre_normalizado": "leonardo navarro franco"}, "x": 120.06076433121017, "y": 158.06076433121018, "z": 60.0}, {"id": "1125899906842641", "name": "Sr. Jairo Zuluaga", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Sr. Jairo Zuluaga", "documentos": ["2015005204_5_0017C1.pdf"], "nombre_normalizado": "sr. jairo zuluaga"}, "x": 124.06278980891717, "y": 162.0627898089172, "z": 60.0}, {"id": "1125899906842642", "name": "Esposa del propietario", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Esposa del propietario", "documentos": ["2015005204_5_0017C1.pdf"], "nombre_normalizado": "esposa del propietario"}, "x": 128.0648152866242, "y": 166.0648152866242, "z": 60.0}, {"id": "1125899906842714", "name": "José Teófilo Campos Traslaviña", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "José Teófilo Campos Traslaviña", "documentos": ["2015005204_27B_6978_C1.pdf"], "nombre_normalizado": "josé teófilo campos traslaviña"}, "x": 132.0668407643312, "y": 170.06684076433123, "z": 60.0}, {"id": "1125899906842715", "name": "José Álvaro Rey Beltrán", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "José Álvaro Rey Beltrán", "documentos": ["2015005204_27B_6978_C1.pdf"], "nombre_normalizado": "josé álvaro rey beltrán"}, "x": 136.0688662420382, "y": 174.06886624203824, "z": 60.0}, {"id": "1125899906842724", "name": "Segundo Epimenio Velasco Fajardo", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Segundo Epimenio Velasco Fajardo", "documentos": ["2015005204_24D_0141C1.pdf"], "nombre_normalizado": "segundo epimenio velasco fajardo"}, "x": 140.07089171974522, "y": 178.07089171974525, "z": 60.0}, {"id": "1125899906842725", "name": "Gorgonio Ortiz Sánchez", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Gorgonio Ortiz Sánchez", "documentos": ["2015005204_24D_0141C1.pdf"], "nombre_normalizado": "gorgonio ortiz sánchez"}, "x": 144.07291719745223, "y": 182.07291719745223, "z": 60.0}, {"id": "1125899906842726", "name": "Carlos Hernández Martínez", "type": "Persona", "level": 1, "size": 3, "weight": 1.0, "metadata": {"tipo": "persona", "nombre": "Carlos Hernández Martínez", "documentos": ["2015005204_24D_0141C1.pdf"], "nombre_normalizado": "carlos hernández martínez"}, "x": 148.07494267515924, "y": 186.07494267515924, "z": 60.0}, {"id": "1688849860263937", "name": "Rincón de", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Rincón de", "subtipo": "vereda", "documentos": ["2015005204_24H_6963C3.pdf"], "nombre_normalizado": "rincón de"}, "x": 0.0, "y": 14.0, "z": 180.0}, {"id": "1688849860263938", "name": "Las", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Las", "subtipo": "vereda", "documentos": ["2015005204_27E_9356C3.pdf"], "nombre_normalizado": "las"}, "x": 4.002025477707006, "y": 18.002025477707008, "z": 180.0}, {"id": "1688849860263939", "name": "Velú", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Velú", "subtipo": "vereda", "documentos": ["2015005204_20E_7688C1.pdf"], "nombre_normalizado": "velú"}, "x": 8.004050955414012, "y": 22.004050955414016, "z": 180.0}, {"id": "1688849860263940", "name": "Curillo", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Curillo", "subtipo": "lugar_especifico", "documentos": ["2015005204_24D_6399C2.pdf"], "nombre_normalizado": "curillo"}, "x": 12.00607643312102, "y": 26.00607643312102, "z": 180.0}, {"id": "1688849860263941", "name": "Espinal", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Espinal", "subtipo": "lugar_especifico", "documentos": ["2015005204_26E_7688C2.pdf"], "nombre_normalizado": "espinal"}, "x": 16.008101910828024, "y": 30.008101910828028, "z": 180.0}, {"id": "1688849860263953", "name": "Veltí", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Veltí", "subtipo": "vereda", "documentos": ["2015005204_20A_7688C1.pdf"], "nombre_normalizado": "veltí"}, "x": 20.010127388535032, "y": 34.010127388535025, "z": 180.0}, {"id": "1688849860263942", "name": "Rincón", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Rincón", "subtipo": "vereda", "documentos": ["2015005204_13A_7688C2.pdf"], "nombre_normalizado": "rincón"}, "x": 24.01215286624204, "y": 38.01215286624204, "z": 180.0}, {"id": "1688849860263943", "name": "Floridablanca", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Floridablanca", "subtipo": "lugar_especifico", "documentos": ["2015005204_27B_6978_C1.pdf"], "nombre_normalizado": "floridablanca"}, "x": 28.01417834394904, "y": 42.01417834394904, "z": 180.0}, {"id": "1688849860263944", "name": "Ibagué", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Ibagué", "subtipo": "lugar_especifico", "documentos": ["2015005204_32AA_7688CA2.pdf"], "nombre_normalizado": "ibagué"}, "x": 32.01620382165605, "y": 46.01620382165605, "z": 180.0}, {"id": "1688849860263945", "name": "Rosas de", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Rosas de", "subtipo": "vereda", "documentos": ["2015005204_24G_9356C3.pdf"], "nombre_normalizado": "rosas de"}, "x": 36.01822929936306, "y": 50.01822929936306, "z": 180.0}, {"id": "1688849860263946", "name": "Acacías", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Acacías", "subtipo": "lugar_especifico", "documentos": ["2015005204_24D_0141C1.pdf"], "nombre_normalizado": "acacías"}, "x": 40.020254777070065, "y": 54.020254777070065, "z": 180.0}, {"id": "1688849860263947", "name": "Popoa", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Popoa", "subtipo": "vereda", "documentos": ["2015005204_20A_1139C2.pdf"], "nombre_normalizado": "popoa"}, "x": 44.022280254777066, "y": 58.02228025477707, "z": 180.0}, {"id": "1688849860263948", "name": "Medellín", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Medellín", "subtipo": "lugar_especifico", "documentos": ["2015005204_27AV_6178C2.pdf"], "nombre_normalizado": "medellín"}, "x": 48.02430573248408, "y": 62.02430573248408, "z": 180.0}, {"id": "1688849860263949", "name": "Popayán", "type": "Lugar", "level": 3, "size": 3, "weight": 1.0, "metadata": {"tipo": "lugar", "nombre": "Popayán", "subtipo": "lugar_especifico", "documentos": ["2015005204_27U_8650C2.pdf"], "nombre_normalizado": "popayán"}, "x": 52.02633121019108, "y": 66.02633121019109, "z": 180.0}],
+            edges: [{"source": "844424930131969", "target": "1125899906842625", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27J_6178C4.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842626", "target": "1125899906842625", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27J_6178C4.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131969", "target": "1125899906842626", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27J_6178C4.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132457", "target": "1125899906842626", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AA_6178C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842625", "target": "1125899906842626", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27J_6178C4.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842749", "target": "1125899906842626", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AA_6178C2.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906843005", "target": "1125899906842626", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AA_6178C2.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131974", "target": "1125899906842627", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_11T_6898C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842628", "target": "1125899906842627", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_11T_6898C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131974", "target": "1125899906842628", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_11T_6898C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842627", "target": "1125899906842628", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_11T_6898C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131975", "target": "1125899906842629", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842630", "target": "1125899906842629", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131979", "target": "1688849860263937", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132190", "target": "1688849860263937", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24B_6176C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842632", "target": "1688849860263937", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842633", "target": "1688849860263937", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842634", "target": "1688849860263937", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842821", "target": "1688849860263937", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24B_6176C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842822", "target": "1688849860263937", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24B_6176C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842823", "target": "1688849860263937", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24B_6176C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "844424930131980", "target": "1688849860263938", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27E_9356C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132056", "target": "1688849860263938", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24A_9356C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132148", "target": "1688849860263938", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24L_1139C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132157", "target": "1688849860263938", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_9356C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132163", "target": "1688849860263938", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_1139C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132221", "target": "1688849860263938", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_11H_9356C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930131983", "target": "1688849860263939", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20E_7688C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930131993", "target": "1688849860263940", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_6399C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132051", "target": "1688849860263941", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26E_7688C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132080", "target": "1688849860263941", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_32AA_7688CA2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842631", "target": "1125899906842629", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131975", "target": "1125899906842630", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842629", "target": "1125899906842630", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842631", "target": "1125899906842630", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131975", "target": "1125899906842631", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842629", "target": "1125899906842631", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842630", "target": "1125899906842631", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0017C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131979", "target": "1125899906842632", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132328", "target": "1125899906842632", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_7688C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132372", "target": "1125899906842632", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AO_7688C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842633", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842634", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842736", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AO_7688C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842795", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AO_7688C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842921", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_7688C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842922", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_7688C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842923", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_7688C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842924", "target": "1125899906842632", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_7688C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1688849860263937", "target": "1125899906842632", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1688849860263953", "target": "1125899906842632", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_20A_7688C1.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "844424930131979", "target": "1125899906842633", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842632", "target": "1125899906842633", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842634", "target": "1125899906842633", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1688849860263937", "target": "1125899906842633", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "844424930131979", "target": "1125899906842634", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842632", "target": "1125899906842634", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842633", "target": "1125899906842634", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1688849860263937", "target": "1125899906842634", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24H_6963C3.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "844424930131988", "target": "1125899906842635", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26K_6337C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842636", "target": "1125899906842635", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26K_6337C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131988", "target": "1125899906842636", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26K_6337C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132014", "target": "1125899906842636", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26X_6337C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842635", "target": "1125899906842636", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26K_6337C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842650", "target": "1125899906842636", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26X_6337C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842651", "target": "1125899906842636", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_26X_6337C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131990", "target": "1125899906842637", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132186", "target": "1125899906842637", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24N_1139C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842638", "target": "1125899906842637", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842639", "target": "1125899906842637", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842640", "target": "1125899906842637", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842812", "target": "1125899906842637", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24N_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842813", "target": "1125899906842637", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24N_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131990", "target": "1125899906842638", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842637", "target": "1125899906842638", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842639", "target": "1125899906842638", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842640", "target": "1125899906842638", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131990", "target": "1125899906842639", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842637", "target": "1125899906842639", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842638", "target": "1125899906842639", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842640", "target": "1125899906842639", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930131990", "target": "1125899906842640", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842637", "target": "1125899906842640", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842638", "target": "1125899906842640", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "1125899906842639", "target": "1125899906842640", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AF_1139C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930132000", "target": "1125899906842641", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_5_0017C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842642", "target": "1125899906842641", "type": "co_ocurrencia_persona", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_5_0017C1.pdf", "tipo_relacion": "co_ocurrencia_persona"}}, {"source": "844424930132067", "target": "1688849860263942", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_13A_7688C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132070", "target": "1688849860263943", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27B_6978_C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842714", "target": "1688849860263943", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_27B_6978_C1.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842715", "target": "1688849860263943", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_27B_6978_C1.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "844424930132080", "target": "1688849860263944", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_32AA_7688CA2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132093", "target": "1688849860263945", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24G_9356C3.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132097", "target": "1688849860263946", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_24D_0141C1.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "1125899906842724", "target": "1688849860263946", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24D_0141C1.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842725", "target": "1688849860263946", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24D_0141C1.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "1125899906842726", "target": "1688849860263946", "type": "UBICADO_EN", "weight": 0.8, "metadata": {"fuerza": 0.8, "documento_id": "2015005204_24D_0141C1.pdf", "tipo_relacion": "UBICADO_EN"}}, {"source": "844424930132163", "target": "1688849860263947", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_20A_1139C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132233", "target": "1688849860263948", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27AV_6178C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}, {"source": "844424930132267", "target": "1688849860263949", "type": "MENCIONADO_EN", "weight": 1.0, "metadata": {"fuerza": 1.0, "documento_id": "2015005204_27U_8650C2.pdf", "tipo_relacion": "MENCIONADO_EN"}}],
+            config: {"node_colors": {"Documento": "#FF6B6B", "Persona": "#4ECDC4", "Organizacion": "#45B7D1", "Lugar": "#96CEB4", "default": "#888888"}, "edge_colors": {"co_ocurrencia_persona": "#4ECDC4", "co_ocurrencia_persona_org": "#96CEB4", "co_ocurrencia_org": "#45B7D1", "MENCIONADO_EN": "#FF6B6B", "UBICADO_EN": "#96CEB4", "OPERA_EN": "#45B7D1", "PERTENECE_A": "#FFEAA7", "default": "#666666"}},
+            stats: {"total_nodes": 81, "total_edges": 100, "levels": 3, "generated_at": "2025-09-30 13:31:06"}
+        };
+
+        console.log('Network3DVisualizer cargado:', networkData);
+
+        // Variables globales
+        let scene, camera, renderer, controls;
+        let nodeObjects = new Map();
+        let edgeObjects = [];
+        let autoRotate = false;
+        let showLabels = true;
+        let visibleLevels = new Set();
+
+        // Configuración
+        const CONFIG = {
+            levelSpacing: 60.0,
+            nodeSizeMultiplier: 2.5,
+            edgeOpacityBase: 0.6
+        };
+
+        function init() {
+            console.log('Iniciando visualizador 3D...');
+
+            // Crear escena
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color('#000511');
+
+            // Cámara
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(100, 100, 100);
+
+            // Renderizador
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // Controles
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Iluminación
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.7);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(100, 100, 100);
+            scene.add(directionalLight);
+
+            // Event listeners
+            window.addEventListener('resize', onWindowResize, false);
+            renderer.domElement.addEventListener('click', onMouseClick, false);
+
+            // Construir red
+            buildNetwork();
+            if (true) {
+                setupControls();
+            }
+            animate();
+
+            console.log('Visualizador iniciado exitosamente');
+        }
+
+        function buildNetwork() {
+            console.log('Construyendo red 3D...');
+
+            // Crear nodos
+            networkData.nodes.forEach(nodeData => {
+                const geometry = new THREE.SphereGeometry(nodeData.size, 16, 16);
+                const color = getNodeColor(nodeData);
+                const material = new THREE.MeshLambertMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.9
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(nodeData.x, nodeData.y, nodeData.z);
+                mesh.userData = nodeData;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+
+                scene.add(mesh);
+                nodeObjects.set(nodeData.id, {
+                    mesh: mesh,
+                    data: nodeData
+                });
+
+                // Agregar nivel a set de niveles visibles
+                visibleLevels.add(nodeData.level);
+            });
+
+            // Crear aristas
+            networkData.edges.forEach(edgeData => {
+                const sourceObj = nodeObjects.get(edgeData.source);
+                const targetObj = nodeObjects.get(edgeData.target);
+
+                if (sourceObj && targetObj) {
+                    const points = [
+                        sourceObj.mesh.position.clone(),
+                        targetObj.mesh.position.clone()
+                    ];
+
+                    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const color = getEdgeColor(edgeData);
+                    const material = new THREE.LineBasicMaterial({
+                        color: color,
+                        transparent: true,
+                        opacity: CONFIG.edgeOpacityBase
+                    });
+
+                    const line = new THREE.Line(geometry, material);
+                    line.userData = edgeData;
+                    scene.add(line);
+                    edgeObjects.push(line);
+                }
+            });
+
+            console.log(`Red construida: ${nodeObjects.size} nodos, ${edgeObjects.length} aristas`);
+        }
+
+        function getNodeColor(nodeData) {
+            const colors = networkData.config.node_colors;
+            return colors[nodeData.type] || colors[nodeData.category] || colors.default || '#888888';
+        }
+
+        function getEdgeColor(edgeData) {
+            const colors = networkData.config.edge_colors;
+            return colors[edgeData.type] || colors[edgeData.category] || colors.default || '#666666';
+        }
+
+        function setupControls() {
+            // Configurar controles de nivel
+            const levelControlsDiv = document.getElementById('level-controls');
+            if (!levelControlsDiv) return;
+
+            const levels = [...visibleLevels].sort((a, b) => a - b);
+
+            levels.forEach(level => {
+                const nodesInLevel = networkData.nodes.filter(n => n.level === level);
+                const levelType = nodesInLevel[0]?.type || nodesInLevel[0]?.category || `Nivel ${level}`;
+                const color = getNodeColor(nodesInLevel[0] || {});
+
+                const div = document.createElement('div');
+                div.className = 'level-control';
+                div.innerHTML = `
+                    <input type="checkbox" id="level-${level}" checked>
+                    <div class="level-indicator" style="background-color: ${color}"></div>
+                    <label for="level-${level}">${levelType} (${nodesInLevel.length})</label>
+                `;
+
+                const checkbox = div.querySelector('input');
+                checkbox.addEventListener('change', () => {
+                    toggleLevel(level, checkbox.checked);
+                });
+
+                levelControlsDiv.appendChild(div);
+            });
+
+            // Configurar filtros
+            const sizeFilter = document.getElementById('sizeFilter');
+            const sizeValue = document.getElementById('sizeValue');
+            if (sizeFilter && sizeValue) {
+                sizeFilter.addEventListener('input', () => {
+                    const minSize = parseFloat(sizeFilter.value);
+                    sizeValue.textContent = minSize;
+                    filterBySize(minSize);
+                });
+            }
+
+            const weightFilter = document.getElementById('weightFilter');
+            const weightValue = document.getElementById('weightValue');
+            if (weightFilter && weightValue) {
+                weightFilter.addEventListener('input', () => {
+                    const minWeight = parseFloat(weightFilter.value);
+                    weightValue.textContent = Math.round(minWeight * 100) + '%';
+                    filterByWeight(minWeight);
+                });
+            }
+        }
+
+        function toggleLevel(level, visible) {
+            nodeObjects.forEach((obj, nodeId) => {
+                if (obj.data.level === level) {
+                    obj.mesh.visible = visible;
+                }
+            });
+
+            edgeObjects.forEach(edge => {
+                const sourceObj = nodeObjects.get(edge.userData.source);
+                const targetObj = nodeObjects.get(edge.userData.target);
+
+                if (sourceObj && targetObj) {
+                    const sourceVisible = sourceObj.mesh.visible;
+                    const targetVisible = targetObj.mesh.visible;
+                    edge.visible = sourceVisible && targetVisible;
+                }
+            });
+        }
+
+        function filterBySize(minSize) {
+            nodeObjects.forEach((obj, nodeId) => {
+                obj.mesh.visible = obj.data.size >= minSize;
+            });
+        }
+
+        function filterByWeight(minWeight) {
+            edgeObjects.forEach(edge => {
+                const weight = edge.userData.weight || edge.userData.strength || 0.5;
+                edge.visible = weight >= minWeight;
+            });
+        }
+
+        function onMouseClick(event) {
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+
+            // Verificar intersección con nodos
+            const meshes = Array.from(nodeObjects.values()).map(obj => obj.mesh);
+            const intersects = raycaster.intersectObjects(meshes);
+
+            if (intersects.length > 0) {
+                const nodeData = intersects[0].object.userData;
+                showNodeDetails(nodeData);
+                return;
+            }
+
+            // Verificar intersección con aristas
+            const edgeIntersects = raycaster.intersectObjects(edgeObjects);
+            if (edgeIntersects.length > 0) {
+                const edgeData = edgeIntersects[0].object.userData;
+                showEdgeDetails(edgeData);
+            }
+        }
+
+        function showNodeDetails(nodeData) {
+            const infoDiv = document.getElementById('node-info');
+            infoDiv.innerHTML = `
+                <div class="node-details">
+                    <h4>📍 ${nodeData.name}</h4>
+                    <p><strong>Tipo:</strong> ${nodeData.type || nodeData.category || 'N/A'}</p>
+                    <p><strong>Nivel:</strong> ${nodeData.level}</p>
+                    <p><strong>Tamaño:</strong> ${nodeData.size}</p>
+                    ${nodeData.description ? `<p><strong>Descripción:</strong> ${nodeData.description}</p>` : ''}
+                    ${nodeData.metadata ? `<p><strong>Datos:</strong> ${JSON.stringify(nodeData.metadata)}</p>` : ''}
+                </div>
+            `;
+        }
+
+        function showEdgeDetails(edgeData) {
+            const sourceNode = nodeObjects.get(edgeData.source);
+            const targetNode = nodeObjects.get(edgeData.target);
+
+            const infoDiv = document.getElementById('node-info');
+            infoDiv.innerHTML = `
+                <div class="edge-details">
+                    <h4>🔗 Conexión</h4>
+                    <p><strong>Desde:</strong> ${sourceNode.data.name}</p>
+                    <p><strong>Hacia:</strong> ${targetNode.data.name}</p>
+                    <p><strong>Tipo:</strong> ${edgeData.type || edgeData.category || 'N/A'}</p>
+                    <p><strong>Peso:</strong> ${edgeData.weight || edgeData.strength || 'N/A'}</p>
+                    ${edgeData.description ? `<p><strong>Descripción:</strong> ${edgeData.description}</p>` : ''}
+                </div>
+            `;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (autoRotate) {
+                scene.rotation.y += 0.005;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Funciones de control globales
+        function resetCamera() {
+            camera.position.set(100, 100, 100);
+            controls.reset();
+        }
+
+        function toggleRotation() {
+            autoRotate = !autoRotate;
+        }
+
+        function toggleLabels() {
+            showLabels = !showLabels;
+            // Implementar toggle de etiquetas si es necesario
+        }
+
+        function exportView() {
+            const imgData = renderer.domElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'network_3d_view.png';
+            link.href = imgData;
+            link.click();
+        }
+
+        // Inicializar cuando se carga la página
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

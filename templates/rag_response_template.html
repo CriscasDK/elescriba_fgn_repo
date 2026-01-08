@@ -1,0 +1,213 @@
+<!-- 
+Template de ejemplo para mostrar respuesta RAG en la interfaz de víctimas
+Incluye trazabilidad completa y referencias legales
+-->
+
+<div class="rag-response-container">
+    <!-- Respuesta principal -->
+    <div class="respuesta-principal">
+        <h3>📝 Respuesta del Sistema</h3>
+        <div class="texto-respuesta">
+            {{ respuesta_rag.texto|safe }}
+        </div>
+        
+        <!-- Metadatos de la respuesta -->
+        <div class="metadatos-respuesta">
+            <small class="text-muted">
+                ⏱️ Tiempo: {{ respuesta_rag.tiempo_respuesta|floatformat:0 }}ms | 
+                📊 Confianza: {{ respuesta_rag.confianza|floatformat:1 }}% | 
+                🔧 Método: {{ respuesta_rag.metodo }}
+                {% if respuesta_rag.consulta_id %}
+                | 🆔 ID: {{ respuesta_rag.consulta_id }}
+                {% endif %}
+            </small>
+        </div>
+    </div>
+
+    <!-- Fuentes y trazabilidad -->
+    {% if respuesta_rag.fuentes %}
+    <div class="fuentes-trazabilidad mt-4">
+        <h4>📚 Referencias y Trazabilidad Legal</h4>
+        <p class="text-muted">
+            Las siguientes fuentes respaldan la información proporcionada. 
+            Haga clic en cada referencia para ver el texto completo del documento.
+        </p>
+        
+        <div class="accordion" id="fuentesAccordion">
+            {% for fuente in respuesta_rag.fuentes %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                    <button class="accordion-button collapsed" type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse{{ forloop.counter }}" 
+                            aria-expanded="false" 
+                            aria-controls="collapse{{ forloop.counter }}">
+                        <strong>{{ fuente.cita }}</strong> - {{ fuente.nombre_archivo }} 
+                        (Pág. {{ fuente.pagina|default:"N/A" }})
+                        <span class="badge bg-primary ms-auto">
+                            Relevancia: {{ fuente.relevancia|floatformat:2 }}
+                        </span>
+                    </button>
+                </h2>
+                
+                <div id="collapse{{ forloop.counter }}" 
+                     class="accordion-collapse collapse" 
+                     aria-labelledby="heading{{ forloop.counter }}" 
+                     data-bs-parent="#fuentesAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <!-- Texto completo del documento -->
+                            <div class="col-md-8">
+                                <h6>📄 Texto del Documento</h6>
+                                <div class="documento-texto border p-3 bg-light">
+                                    <em>{{ fuente.texto_fuente|default:"Texto no disponible" }}</em>
+                                </div>
+                            </div>
+                            
+                            <!-- Metadatos legales -->
+                            <div class="col-md-4">
+                                <h6>⚖️ Información Legal</h6>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Archivo:</strong></td>
+                                            <td>{{ fuente.nombre_archivo }}</td>
+                                        </tr>
+                                        {% if fuente.expediente != "N/A" %}
+                                        <tr>
+                                            <td><strong>Expediente:</strong></td>
+                                            <td>{{ fuente.expediente }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <td><strong>Tipo:</strong></td>
+                                            <td>{{ fuente.tipo_documento|default:"N/A" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Página:</strong></td>
+                                            <td>{{ fuente.pagina|default:"N/A" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Párrafo:</strong></td>
+                                            <td>{{ fuente.parrafo|default:"N/A" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Relevancia:</strong></td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar" 
+                                                         role="progressbar" 
+                                                         style="width: {{ fuente.relevancia|floatformat:0 }}%">
+                                                        {{ fuente.relevancia|floatformat:2 }}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <!-- Botón para descargar/ver documento completo -->
+                                <div class="mt-3">
+                                    <button class="btn btn-outline-primary btn-sm" 
+                                            onclick="verDocumentoCompleto('{{ fuente.nombre_archivo }}')">
+                                        📖 Ver Documento Completo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Disclaimer legal -->
+    <div class="disclaimer-legal mt-4 p-3 border rounded bg-light">
+        <small class="text-muted">
+            <strong>⚖️ Aviso Legal:</strong> 
+            Esta información ha sido extraída automáticamente de documentos judiciales oficiales. 
+            Para efectos legales, siempre consulte los documentos originales completos. 
+            Todas las citas incluyen trazabilidad completa para verificación.
+            {% if respuesta_rag.timestamp %}
+            Consulta realizada el {{ respuesta_rag.timestamp|date:"d/m/Y H:i:s" }}.
+            {% endif %}
+        </small>
+    </div>
+</div>
+
+<!-- JavaScript para funcionalidades adicionales -->
+<script>
+function verDocumentoCompleto(nombreArchivo) {
+    // Implementar lógica para mostrar documento completo
+    alert(`Abriendo documento: ${nombreArchivo}`);
+    // Aquí se podría integrar con un visor de documentos PDF
+}
+
+// Función para copiar cita al portapapeles
+function copiarCita(textoCita) {
+    navigator.clipboard.writeText(textoCita).then(function() {
+        // Mostrar confirmación
+        alert('Cita copiada al portapapeles');
+    });
+}
+
+// Resaltar texto de citas en la respuesta
+document.addEventListener('DOMContentLoaded', function() {
+    const textoRespuesta = document.querySelector('.texto-respuesta');
+    if (textoRespuesta) {
+        // Buscar y resaltar referencias [CITA-X]
+        let contenido = textoRespuesta.innerHTML;
+        contenido = contenido.replace(/\[CITA-(\d+)\]/g, '<span class="badge bg-warning text-dark">[CITA-$1]</span>');
+        textoRespuesta.innerHTML = contenido;
+    }
+});
+</script>
+
+<!-- CSS adicional para mejorar presentación -->
+<style>
+.rag-response-container {
+    max-width: 100%;
+    margin: 20px 0;
+}
+
+.respuesta-principal {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.texto-respuesta {
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.documento-texto {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+.fuentes-trazabilidad .accordion-button {
+    font-size: 0.95em;
+}
+
+.disclaimer-legal {
+    background-color: #fff3cd !important;
+    border-color: #ffeaa7 !important;
+}
+
+.badge.bg-warning {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.badge.bg-warning:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+</style>

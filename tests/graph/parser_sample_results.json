@@ -1,0 +1,487 @@
+{
+  "stats": {
+    "documentos_procesados": 50,
+    "personas_extraidas": 3,
+    "organizaciones_extraidas": 2,
+    "lugares_extraidos": 4,
+    "relaciones_generadas": 10,
+    "errores": 0
+  },
+  "resultados": [
+    {
+      "documento_id": "2015005204_27J_6178C4.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27AW_3790C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24D_0186C8.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27DE_3790C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24D_6178C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_11T_6898C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24D_0017C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27AA_6919C3.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24B_0017C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27Z_6921C3.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24H_6963C3.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [
+        {
+          "nombre": "Rincón de",
+          "tipo": "vereda",
+          "documento_id": "2015005204_24H_6963C3.pdf"
+        }
+      ],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27E_9356C3.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [
+        {
+          "nombre": "Las",
+          "tipo": "vereda",
+          "documento_id": "2015005204_27E_9356C3.pdf"
+        }
+      ],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26U_6386C3.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_32R_6315C4.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_20E_7688C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [
+        {
+          "nombre": "Velú",
+          "tipo": "vereda",
+          "documento_id": "2015005204_20E_7688C1.pdf"
+        }
+      ],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24F_6898C3.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26E_6178A1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27T_9603C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26C_6898C3.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26K_6337C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_7W_1139C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27AF_1139C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27Q_6921_C4.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005205_27AG_0186C5.pdf",
+      "personas": [
+        {
+          "nombre": "María Yeni Morantes Hernández",
+          "clasificacion": null,
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "contexto": "Directora Cárcel Buen Pastor"
+        },
+        {
+          "nombre": "Olga Luz García Areiza",
+          "clasificacion": null,
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "contexto": "Persona mencionada como interna en el centro carcelario"
+        },
+        {
+          "nombre": "Pablo Ernesto Ternera Pérez",
+          "clasificacion": null,
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "contexto": "Jefe Área Derechos Humanos y Desaparecidos"
+        }
+      ],
+      "organizaciones": [
+        {
+          "nombre": "Cárcel Buen Pastor",
+          "tipo": null,
+          "documento_id": "2015005205_27AG_0186C5.pdf"
+        },
+        {
+          "nombre": "Fiscalía 29 Unidad Nacional de Derechos Humanos y DIH",
+          "tipo": null,
+          "documento_id": "2015005205_27AG_0186C5.pdf"
+        }
+      ],
+      "lugares": [],
+      "relaciones": [
+        {
+          "origen": "María Yeni Morantes Hernández",
+          "destino": "Olga Luz García Areiza",
+          "tipo": "co_ocurrencia_persona",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "María Yeni Morantes Hernández",
+          "destino": "Pablo Ernesto Ternera Pérez",
+          "tipo": "co_ocurrencia_persona",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "Olga Luz García Areiza",
+          "destino": "Pablo Ernesto Ternera Pérez",
+          "tipo": "co_ocurrencia_persona",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "María Yeni Morantes Hernández",
+          "destino": "Cárcel Buen Pastor",
+          "tipo": "co_ocurrencia_persona_org",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "María Yeni Morantes Hernández",
+          "destino": "Fiscalía 29 Unidad Nacional de Derechos Humanos y DIH",
+          "tipo": "co_ocurrencia_persona_org",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "Olga Luz García Areiza",
+          "destino": "Cárcel Buen Pastor",
+          "tipo": "co_ocurrencia_persona_org",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "Olga Luz García Areiza",
+          "destino": "Fiscalía 29 Unidad Nacional de Derechos Humanos y DIH",
+          "tipo": "co_ocurrencia_persona_org",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "Pablo Ernesto Ternera Pérez",
+          "destino": "Cárcel Buen Pastor",
+          "tipo": "co_ocurrencia_persona_org",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "Pablo Ernesto Ternera Pérez",
+          "destino": "Fiscalía 29 Unidad Nacional de Derechos Humanos y DIH",
+          "tipo": "co_ocurrencia_persona_org",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        },
+        {
+          "origen": "Cárcel Buen Pastor",
+          "destino": "Fiscalía 29 Unidad Nacional de Derechos Humanos y DIH",
+          "tipo": "co_ocurrencia_org",
+          "documento_id": "2015005205_27AG_0186C5.pdf",
+          "fuerza": 1.0
+        }
+      ]
+    },
+    {
+      "documento_id": "2015005204_24D_6399C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [
+        {
+          "nombre": "Curillo",
+          "tipo": "lugar_especifico",
+          "documento_id": "2015005204_24D_6399C2.pdf"
+        }
+      ],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_11S_6919C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_7E_7688C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27C_6178C4.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_32.10C_6921C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24O_7688C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27AL_6921C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_5_0017C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24C_6921_C4.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_7_3790C5.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26C_6310CA1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_32F_6315C4.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24_9603C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26H_1139C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_32D_6399CA2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24P_0186C8.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_21B6176C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24Z_6315C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_11J_3790C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_24AF_0186C4.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27AQ_0186C7.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26X_6337C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27AJ_0186C2.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27DA_6978_C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_26C_6399C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    },
+    {
+      "documento_id": "2015005204_27O_6337C1.pdf",
+      "personas": [],
+      "organizaciones": [],
+      "lugares": [],
+      "relaciones": []
+    }
+  ]
+}

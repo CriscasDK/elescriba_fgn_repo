@@ -1,0 +1,8 @@
+# Dependencias para la Interfaz de Chatbot Legal
+# Fecha: Agosto 15, 2025
+
+streamlit>=1.25.0
+requests>=2.31.0
+plotly>=5.15.0
+pandas>=2.0.0
+numpy>=1.24.0
